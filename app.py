@@ -138,7 +138,7 @@ def main():
         #embedding the chunks
         text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
         embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2",
-                                        device="cuda")
+                                        device="cpu")
         text_chunk_embeddings = embedding_model.encode(text_chunks,
                                                batch_size=64, # you can use different batch sizes here for speed/performance, I found 32 works well for this use case
                                                convert_to_tensor=True) # optional to return embeddings as tensor instead of array
