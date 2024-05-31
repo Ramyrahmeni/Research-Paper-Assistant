@@ -89,9 +89,14 @@ def retrieve_relevant_resources(query: str,
     # Get dot product scores on embeddings
     dot_scores = util.dot_score(query_embedding, embeddings)[0]
 
+    cnt=0
+    for i in range(len(dot_scores)):
+        if dot_scores[i]>0.5:
+            cnt+=1
+
     
     scores, indices = torch.topk(input=dot_scores,
-                                 k=min(n_resources_to_return,len(dot_scores)))
+                                 k=min(cnt,len(dot_scores)))
 
     return scores, indices
 def print_top_results_and_scores(query: str,
