@@ -5,3 +5,4 @@ python-dotenv==1.0.0
 spacy
 streamlit==1.30.0
 sentence_transformers
+torch

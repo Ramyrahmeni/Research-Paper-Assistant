@@ -3,7 +3,7 @@ import PyPDF2
 import pandas as pd
 from spacy.lang.en import English # see https://spacy.io/usage for install instructions
 import re
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer,util
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
     cleaned_text = text.replace("\n", " ").strip() # note: this might be different for each doc (best to experiment)
@@ -134,27 +134,33 @@ def main():
         df=pd.DataFrame(pages_and_chunks)
         pages_and_chunks=elimination_chunks(df,30)
         #pages_and_chunks[:2]
-
-        #embedding_chunks
-
+        
+        #embedding the chunks
+        text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
         embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2",
-                                      device="cpu")
-        sentences = [
-            "The Sentences Transformers library provides an easy and open-source way to create embeddings.",
-            "Sentences can be embedded one by one or as a list of strings.",
-            "Embeddings are one of the most powerful concepts in machine learning!",
-            "Learn to use embeddings well and you'll be well on your way to being an AI engineer."
-        ]
+                                        device="cuda")
+        text_chunk_embeddings = embedding_model.encode(text_chunks,
+                                               batch_size=64, # you can use different batch sizes here for speed/performance, I found 32 works well for this use case
+                                               convert_to_tensor=True) # optional to return embeddings as tensor instead of array
 
-        # Sentences are encoded/embedded by calling model.encode()
-        embeddings = embedding_model.encode(sentences)
-        embeddings_dict = dict(zip(sentences, embeddings))
+        text_chunk_embeddings
 
-        # See the embeddings
-        for sentence, embedding in embeddings_dict.items():
-            print("Sentence:", sentence)
-            print("Embedding:", embedding)
-            print("")
+
+        
+        '''query = st.text_input("Ask questions about your PDF file:")
+        if query:
+            embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2",
+                                        device="cpu")
+            
+            
+
+            # Sentences are encoded/embedded by calling model.encode()
+            query_embedding = embedding_model.encode(query)
+            #embeddings_dict = dict(zip(sentences, embeddings))
+
+            # See the embeddings
+            for sentence, embedding in embeddings_dict.items():
+                embedding'''
 
 
         
