@@ -109,16 +109,14 @@ def print_top_results_and_scores(query: str,
                                                   embedding_model=embedding_model,
                                                   n_resources_to_return=n_resources_to_return)
 
-    print(f"Query: {query}\n")
-    print("Results:")
-    # Loop through zipped together scores and indicies
+    st.write(f"Query: {query}\n")
+    st.write("Results:")
+
     for score, index in zip(scores, indices):
-        print(f"Score: {score:.4f}")
-        # Print relevant sentence chunk (since the scores are in descending order, the most relevant chunk will be first)
-        print_wrapped(pages_and_chunks[index]["sentence_chunk"])
-        # Print the page number too so we can reference the textbook further and check the results
-        print(f"Page number: {pages_and_chunks[index]['page_number']}")
-        print("\n")
+        st.write(f"**Score:** {score:.4f}")
+        st.write(f"**Sentence Chunk:** {pages_and_chunks[index]['sentence_chunk']}")
+        st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
+        st.write("\n")
 
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
