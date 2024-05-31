@@ -6,3 +6,4 @@ spacy
 streamlit==1.30.0
 sentence_transformers
 torch
+stqdm
