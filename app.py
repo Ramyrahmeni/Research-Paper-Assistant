@@ -5,6 +5,8 @@ from spacy.lang.en import English
 import re
 from sentence_transformers import SentenceTransformer, util
 from stqdm import stqdm  # for progress bars in Streamlit
+import torch
+import textwrap
 
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
@@ -63,7 +65,59 @@ def split_list(input_list: list, slice_size: int) -> list[list[str]]:
 
 def elimination_chunks(df: pd.DataFrame, min_token_length) -> list[dict]:
     pages_and_chunks_over_min_token_len = df[df["chunk_token_count"] > min_token_length].to_dict(orient="records")
+
     return pages_and_chunks_over_min_token_len
+
+
+def print_wrapped(text, wrap_length=80):
+    wrapped_text = textwrap.fill(text, wrap_length)
+    print(wrapped_text)
+
+def retrieve_relevant_resources(query: str,
+                                embeddings: torch.tensor,
+                                model: SentenceTransformer,
+                                n_resources_to_return: int=5,
+                                ):
+    """
+    Embeds a query with model and returns top k scores and indices from embeddings.
+    """
+
+    # Embed the query
+    query_embedding = model.encode(query,
+                                   convert_to_tensor=True)
+
+    # Get dot product scores on embeddings
+    dot_scores = util.dot_score(query_embedding, embeddings)[0]
+
+    
+    scores, indices = torch.topk(input=dot_scores,
+                                 k=n_resources_to_return)
+
+    return scores, indices
+def print_top_results_and_scores(query: str,
+                                 embeddings: torch.tensor,
+                                 pages_and_chunks: list[dict],
+                                 n_resources_to_return: int=5):
+    """
+    Takes a query, retrieves most relevant resources and prints them out in descending order.
+
+    Note: Requires pages_and_chunks to be formatted in a specific way (see above for reference).
+    """
+
+    scores, indices = retrieve_relevant_resources(query=query,
+                                                  embeddings=embeddings,
+                                                  n_resources_to_return=n_resources_to_return)
+
+    print(f"Query: {query}\n")
+    print("Results:")
+    # Loop through zipped together scores and indicies
+    for score, index in zip(scores, indices):
+        print(f"Score: {score:.4f}")
+        # Print relevant sentence chunk (since the scores are in descending order, the most relevant chunk will be first)
+        print_wrapped(pages_and_chunks[index]["sentence_chunk"])
+        # Print the page number too so we can reference the textbook further and check the results
+        print(f"Page number: {pages_and_chunks[index]['page_number']}")
+        print("\n")
 
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
@@ -120,10 +174,11 @@ def main():
         embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")            
 
         if query:
-            with st.spinner('Generating query embedding...'):
-                text_chunk_embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
-                query_embedding = embedding_model.encode(query)
-                text_chunk_embeddings
+            with st.spinner('Generating response...'):
+                embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
+                #performing vector search
+                print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,
+                             embeddings=embeddings)
 
 if __name__ == "__main__":
     main()
