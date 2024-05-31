@@ -97,15 +97,16 @@ def retrieve_relevant_resources(query: str,
 def print_top_results_and_scores(query: str,
                                  embeddings: torch.tensor,
                                  pages_and_chunks: list[dict],
+                                 embedding_model:SentenceTransformer,
                                  n_resources_to_return: int=5):
     """
     Takes a query, retrieves most relevant resources and prints them out in descending order.
 
     Note: Requires pages_and_chunks to be formatted in a specific way (see above for reference).
     """
-
     scores, indices = retrieve_relevant_resources(query=query,
                                                   embeddings=embeddings,
+                                                  embedding_model=embedding_model,
                                                   n_resources_to_return=n_resources_to_return)
 
     print(f"Query: {query}\n")
@@ -177,7 +178,7 @@ def main():
             with st.spinner('Generating response...'):
                 embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
                 #performing vector search
-                print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,
+                print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,embedding_model=embedding_model,
                              embeddings=embeddings)
 
 if __name__ == "__main__":
