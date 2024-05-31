@@ -95,8 +95,16 @@ def main():
     st.header("Chat with PDF 💬")
  
     # upload a PDF file
-    pdf = st.file_uploader("Upload your PDF", type='pdf')
+    MAX_UPLOAD_SIZE_MB = 30
+    MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+
+    # Upload a PDF file
+    pdf = st.file_uploader(f"Upload your PDF (Limit {MAX_UPLOAD_SIZE_MB}MB per file)", type='pdf')
     if pdf:
+        if pdf.size > MAX_UPLOAD_SIZE_BYTES:
+            st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
+            return
+        
         pages_and_texts = open_and_read_pdf(pdf)
         #print(pages_and_texts[:2])
 
@@ -136,14 +144,14 @@ def main():
         #pages_and_chunks[:2]
         
         #embedding the chunks
-        text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
+        '''text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
         embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2",
                                         device="cpu")
         text_chunk_embeddings = embedding_model.encode(text_chunks,
                                                batch_size=64, # you can use different batch sizes here for speed/performance, I found 32 works well for this use case
                                                convert_to_tensor=True) # optional to return embeddings as tensor instead of array
 
-        text_chunk_embeddings
+        text_chunk_embeddings'''
 
 
         
