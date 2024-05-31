@@ -91,7 +91,7 @@ def retrieve_relevant_resources(query: str,
 
     
     scores, indices = torch.topk(input=dot_scores,
-                                 k=n_resources_to_return)
+                                 k=min(n_resources_to_return,len(dot_scores)))
 
     return scores, indices
 def print_top_results_and_scores(query: str,
