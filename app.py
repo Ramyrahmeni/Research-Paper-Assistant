@@ -76,29 +76,26 @@ def print_wrapped(text, wrap_length=80):
 def retrieve_relevant_resources(query: str,
                                 embeddings: torch.tensor,
                                 embedding_model: SentenceTransformer,
-                                n_resources_to_return: int=5,
-                                ):
+                                n_resources_to_return: int = 5):
     """
-    Embeds a query with model and returns top k scores and indices from embeddings.
+    Embeds a query with the model and returns top K scores and indices from embeddings.
     """
-
     # Embed the query
-    query_embedding = embedding_model.encode(query,
-                                   convert_to_tensor=True)
-
+    query_embedding = embedding_model.encode(query, convert_to_tensor=True)
+    
     # Get dot product scores on embeddings
     dot_scores = util.dot_score(query_embedding, embeddings)[0]
-
-    cnt=0
-    for i in range(len(dot_scores)):
-        if dot_scores[i]>0.5:
-            cnt+=1
-
     
-    scores, indices = torch.topk(input=dot_scores,
-                                 k=min(cnt,len(dot_scores)))
-
+    # Get the number of scores above a threshold (e.g., 0.5)
+    valid_scores = dot_scores > 0.5
+    cnt = valid_scores.sum().item()
+    
+    # Get top K scores and their indices
+    top_k = min(cnt, n_resources_to_return)
+    scores, indices = torch.topk(dot_scores, k=top_k)
+    
     return scores, indices
+
 def print_top_results_and_scores(query: str,
                                  embeddings: torch.tensor,
                                  pages_and_chunks: list[dict],
