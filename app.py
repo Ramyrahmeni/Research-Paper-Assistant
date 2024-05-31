@@ -75,7 +75,7 @@ def print_wrapped(text, wrap_length=80):
 
 def retrieve_relevant_resources(query: str,
                                 embeddings: torch.tensor,
-                                model: SentenceTransformer,
+                                embedding_model: SentenceTransformer,
                                 n_resources_to_return: int=5,
                                 ):
     """
@@ -83,7 +83,7 @@ def retrieve_relevant_resources(query: str,
     """
 
     # Embed the query
-    query_embedding = model.encode(query,
+    query_embedding = embedding_model.encode(query,
                                    convert_to_tensor=True)
 
     # Get dot product scores on embeddings
