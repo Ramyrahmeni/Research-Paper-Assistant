@@ -167,7 +167,7 @@ def print_top_results_and_scores(query: str,
         st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
         st.write("\n")
     return context_items
-def ask(query,model,embeddings,pages_and_chunks,tokenizer,
+def ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
         temperature=0.7,
         max_new_tokens=512,
         format_answer_text=True,
@@ -178,7 +178,7 @@ def ask(query,model,embeddings,pages_and_chunks,tokenizer,
 
     # Get just the scores and indices of top related results
     scores, indices = retrieve_relevant_resources(query=query,
-                                                  embeddings=embeddings)
+                                                  embeddings=embeddings,embedding_model=embedding_model)
 
     # Create a list of context items
     context_items = [pages_and_chunks[i] for i in indices]
@@ -281,13 +281,12 @@ def main():
                         token=os.getenv('API_KEY')
                         )
                 tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token=os.getenv('API_KEY'))
-                model
-                '''answer, context_items =ask(query,model,embeddings,pages_and_chunks,tokenizer,
+                answer, context_items =ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
         temperature=0.7,
         max_new_tokens=512,
         format_answer_text=True,
         return_answer_only=True)
-                print(answer)'''
+                print(answer)
 
 if __name__ == "__main__":
     main()
