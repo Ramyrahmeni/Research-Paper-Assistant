@@ -275,7 +275,7 @@ def main():
                              embeddings=embeddings)'''
                 #importing the model 
                 model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", 
-                        device_map="cuda", 
+                        device_map="cpu", 
                         torch_dtype="auto", 
                         trust_remote_code=True, 
                         token=os.getenv('API_KEY')
