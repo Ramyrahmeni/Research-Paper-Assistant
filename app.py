@@ -4,7 +4,7 @@ import pandas as pd
 from spacy.lang.en import English
 import re
 from sentence_transformers import SentenceTransformer, util
-from transformers import AutoTokenizer, AutoModelForCausalLM,pipline
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from stqdm import stqdm  
 import torch
 import textwrap
