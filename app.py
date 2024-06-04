@@ -75,25 +75,27 @@ def print_wrapped(text, wrap_length=80):
 
 def retrieve_relevant_resources(query: str,
                                 embeddings: torch.tensor,
-                                model: SentenceTransformer,
-                                n_resources_to_return: int=5,
-                                ):
+                                embedding_model: SentenceTransformer,
+                                n_resources_to_return: int = 5):
     """
-    Embeds a query with model and returns top k scores and indices from embeddings.
+    Embeds a query with the model and returns top K scores and indices from embeddings.
     """
-
     # Embed the query
-    query_embedding = model.encode(query,
-                                   convert_to_tensor=True)
-
+    query_embedding = embedding_model.encode(query, convert_to_tensor=True)
+    
     # Get dot product scores on embeddings
     dot_scores = util.dot_score(query_embedding, embeddings)[0]
-
     
-    scores, indices = torch.topk(input=dot_scores,
-                                 k=n_resources_to_return)
-
+    # Get the number of scores above a threshold (e.g., 0.5)
+    valid_scores = dot_scores > 0.5
+    cnt = valid_scores.sum().item()
+    
+    # Get top K scores and their indices
+    top_k = min(cnt, n_resources_to_return)
+    scores, indices = torch.topk(dot_scores, k=top_k)
+    
     return scores, indices
+
 def print_top_results_and_scores(query: str,
                                  embeddings: torch.tensor,
                                  pages_and_chunks: list[dict],
@@ -109,16 +111,14 @@ def print_top_results_and_scores(query: str,
                                                   embedding_model=embedding_model,
                                                   n_resources_to_return=n_resources_to_return)
 
-    print(f"Query: {query}\n")
-    print("Results:")
-    # Loop through zipped together scores and indicies
+    st.write(f"Query: {query}\n")
+    st.write("Results:")
+
     for score, index in zip(scores, indices):
-        print(f"Score: {score:.4f}")
-        # Print relevant sentence chunk (since the scores are in descending order, the most relevant chunk will be first)
-        print_wrapped(pages_and_chunks[index]["sentence_chunk"])
-        # Print the page number too so we can reference the textbook further and check the results
-        print(f"Page number: {pages_and_chunks[index]['page_number']}")
-        print("\n")
+        st.write(f"**Score:** {score:.4f}")
+        st.write(f"**Sentence Chunk:** {pages_and_chunks[index]['sentence_chunk']}")
+        st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
+        st.write("\n")
 
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
