@@ -281,13 +281,13 @@ def main():
                         token=os.getenv('API_KEY')
                         )
                 tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token=os.getenv('API_KEY'))
-                print(model)
-                answer, context_items =ask(query,model,embeddings,pages_and_chunks,tokenizer,
+                model
+                '''answer, context_items =ask(query,model,embeddings,pages_and_chunks,tokenizer,
         temperature=0.7,
         max_new_tokens=512,
         format_answer_text=True,
         return_answer_only=True)
-                print(answer)
+                print(answer)'''
 
 if __name__ == "__main__":
     main()
