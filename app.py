@@ -4,18 +4,64 @@ import pandas as pd
 from spacy.lang.en import English
 import re
 from sentence_transformers import SentenceTransformer, util
-from stqdm import stqdm  # for progress bars in Streamlit
+from transformers import AutoTokenizer, AutoModelForCausalLM,pipline
+from stqdm import stqdm  
 import torch
 import textwrap
+from dotenv import load_dotenv
+import os
+def configure():
+    load_dotenv()
+def prompt_formatter(query: str,
+                     context_items: list[dict],tokenizer) -> str:
+    """
+    Augments query with text-based context from context_items.
+    """
+    # Join context items into one dotted paragraph
+    context = "- " + "\n- ".join([item["sentence_chunk"] for item in context_items])
 
+    # Create a base prompt with examples to help the model
+    # Note: this is very customizable, I've chosen to use 3 examples of the answer style we'd like.
+    # We could also write this in a txt file and import it in if we wanted.
+    base_prompt = """Based on the following context items, please answer the query.
+Give yourself room to think by extracting relevant passages from the context before answering the query.
+Don't return the thinking, only return the answer.
+Make sure your answers are as explanatory as possible.
+Use the following examples as reference for the ideal answer style.
+\nExample 1:
+Query: What is the Stoic concept of 'apatheia'?
+Answer: The Stoic concept of 'apatheia' refers to a state of mind where one is free from unhealthy passions or disturbances, such as excessive desires, fears, or anxieties. It does not mean total emotional detachment, but rather a calm and balanced state of being where one's emotions are under rational control. Apatheia allows individuals to respond to external events with clarity and equanimity, without being overwhelmed by emotional reactions.
+\nExample 2:
+Query: How did Stoicism influence Roman philosophy and society?
+Answer: Stoicism had a profound influence on Roman philosophy and society, particularly during the Imperial period. Roman Stoics such as Seneca, Epictetus, and Marcus Aurelius emphasized principles of virtue, self-discipline, and resilience in the face of adversity. Stoic teachings were integrated into Roman educational systems, legal theory, and political discourse, shaping the moral character of individuals and the governance of the empire. The Stoic emphasis on duty, justice, and natural law contributed to the development of Roman law and ethics.
+\nExample 3:
+Query: What are some Stoic practices for achieving tranquility?
+Answer: Stoics employ various practices to cultivate tranquility and inner peace, such as negative visualization, mindfulness of the present moment, and voluntary discomfort. Negative visualization involves contemplating the loss of things we value, which helps to appreciate them more fully and reduce attachment. Mindfulness helps individuals focus on what is within their control and accept the present moment without judgment. Voluntary discomfort, such as fasting or exposure to cold, builds resilience and strengthens the willpower to endure hardship.
+\nNow use the following context items to answer the user query:
+{context}
+\nRelevant passages: <extract relevant passages from the context here>
+User query: {query}
+Answer:"""
+
+    # Update base prompt with context items and query
+    base_prompt = base_prompt.format(context=context, query=query)
+
+    # Create prompt template for instruction-tuned model
+    dialogue_template = [
+        {"role": "user",
+        "content": base_prompt}
+    ]
+
+    # Apply the chat template
+    prompt = tokenizer.apply_chat_template(conversation=dialogue_template,
+                                          tokenize=False,
+                                          add_generation_prompt=True)
+    return prompt
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
-    cleaned_text = text.replace("\n", " ").strip()  # note: this might be different for each doc (best to experiment)
-    # Other potential text formatting functions can go here
+    cleaned_text = text.replace("\n", " ").strip()  
     return cleaned_text
 
-# Open PDF and get lines/pages
-# Note: this only focuses on text, rather than images/figures etc
 def open_and_read_pdf(pdf) -> list[dict]:
     """
     Opens a PDF file, reads its text content page by page, and collects statistics.
@@ -113,12 +159,59 @@ def print_top_results_and_scores(query: str,
 
     st.write(f"Query: {query}\n")
     st.write("Results:")
-
+    context_items=[]
     for score, index in zip(scores, indices):
+        context_items.append(pages_and_chunks[index])
         st.write(f"**Score:** {score:.4f}")
         st.write(f"**Sentence Chunk:** {pages_and_chunks[index]['sentence_chunk']}")
         st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
         st.write("\n")
+    return context_items
+def ask(query,model,embeddings,pages_and_chunks,tokenizer,
+        temperature=0.7,
+        max_new_tokens=512,
+        format_answer_text=True,
+        return_answer_only=True):
+    """
+    Takes a query, finds relevant resources/context and generates an answer to the query based on the relevant resources.
+    """
+
+    # Get just the scores and indices of top related results
+    scores, indices = retrieve_relevant_resources(query=query,
+                                                  embeddings=embeddings)
+
+    # Create a list of context items
+    context_items = [pages_and_chunks[i] for i in indices]
+
+    # Add score to context item
+    for i, item in enumerate(context_items):
+        item["score"] = scores[i].cpu() # return score back to CPU
+
+    # Format the prompt with context items
+    prompt = prompt_formatter(query=query,
+                              context_items=context_items,tokenizer=tokenizer)
+
+    # Tokenize the prompt
+    input_ids = tokenizer(prompt, return_tensors="pt").to("cpu")
+
+    # Generate an output of tokens
+    outputs = model.generate(**input_ids,
+                                 temperature=temperature,
+                                 do_sample=True,
+                                 max_new_tokens=max_new_tokens)
+
+    # Turn the output tokens into text
+    output_text = tokenizer.decode(outputs[0])
+
+    if format_answer_text:
+        # Replace special tokens and unnecessary help message
+        output_text = output_text.replace(prompt, "").replace("<bos>", "").replace("<eos>", "").replace("Sure, here is the answer to the user query:\n\n", "")
+
+    # Only return the answer without the context items
+    if return_answer_only:
+        return output_text
+
+    return output_text, context_items
 
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
@@ -134,6 +227,7 @@ with st.sidebar:
     ''')
 
 def main():
+    configure()
     st.header("Chat with PDF 💬")
     
     MAX_UPLOAD_SIZE_MB = 30
@@ -177,9 +271,23 @@ def main():
         if query:
             with st.spinner('Generating response...'):
                 embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
-                #performing vector search
-                print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,embedding_model=embedding_model,
-                             embeddings=embeddings)
+                '''print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,embedding_model=embedding_model,
+                             embeddings=embeddings)'''
+                #importing the model 
+                model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", 
+                        device_map="cuda", 
+                        torch_dtype="auto", 
+                        trust_remote_code=True, 
+                        token=os.getenv('API_KEY')
+                        )
+                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token=os.getenv('API_KEY'))
+                print(model)
+                answer, context_items =ask(query,model,embeddings,pages_and_chunks,tokenizer,
+        temperature=0.7,
+        max_new_tokens=512,
+        format_answer_text=True,
+        return_answer_only=True)
+                print(answer)
 
 if __name__ == "__main__":
     main()
