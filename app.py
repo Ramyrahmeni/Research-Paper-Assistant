@@ -5,6 +5,7 @@ from spacy.lang.en import English
 import re
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoTokenizer, AutoModelForCausalLM
+
 from stqdm import stqdm  
 import torch
 import textwrap
@@ -278,9 +279,9 @@ def main():
                         device_map="cpu", 
                         torch_dtype="auto", 
                         trust_remote_code=True, 
-                        token=os.getenv('API_KEY')
+                        token='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'
                         )
-                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token=os.getenv('API_KEY'))
+                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
                 answer, context_items =ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
         temperature=0.7,
         max_new_tokens=512,
