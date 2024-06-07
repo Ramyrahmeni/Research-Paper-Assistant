@@ -191,7 +191,7 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     for i, item in enumerate(context_items):
         item["score"] = scores[i].cpu()  # return score back to CPU
 
-    print(f"Context items: {context_items}")
+    st.text(f"Context items: {context_items}")
 
     # Format the prompt with context items
     '''print("Formatting the prompt")
