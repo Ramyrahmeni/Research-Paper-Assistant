@@ -294,13 +294,13 @@ def main():
                         token='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'
                         )
                 print(model)
-                '''tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
+                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
                 answer, context_items =ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
         temperature=0.7,
         max_new_tokens=512,
         format_answer_text=True,
-        return_answer_only=True)'''
-                #print(answer)
+        return_answer_only=True)
+                print(answer)
 
 if __name__ == "__main__":
     main()
