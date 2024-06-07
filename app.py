@@ -168,51 +168,63 @@ def print_top_results_and_scores(query: str,
         st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
         st.write("\n")
     return context_items
-def ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
-        temperature=0.7,
-        max_new_tokens=512,
-        format_answer_text=True,
-        return_answer_only=True):
+def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
+        temperature=0.7, max_new_tokens=512, format_answer_text=True, return_answer_only=True):
     """
     Takes a query, finds relevant resources/context and generates an answer to the query based on the relevant resources.
     """
 
+    print("Starting ask function")
+    print(f"Query: {query}")
+    
     # Get just the scores and indices of top related results
+    print("Retrieving relevant resources")
     scores, indices = retrieve_relevant_resources(query=query,
-                                                  embeddings=embeddings,embedding_model=embedding_model)
+                                                  embeddings=embeddings, embedding_model=embedding_model)
+    print(f"Scores: {scores}")
+    print(f"Indices: {indices}")
 
     # Create a list of context items
     context_items = [pages_and_chunks[i] for i in indices]
 
     # Add score to context item
     for i, item in enumerate(context_items):
-        item["score"] = scores[i].cpu() # return score back to CPU
+        item["score"] = scores[i].cpu()  # return score back to CPU
+
+    print(f"Context items: {context_items}")
 
     # Format the prompt with context items
-    prompt = prompt_formatter(query=query,
-                              context_items=context_items,tokenizer=tokenizer)
+    print("Formatting the prompt")
+    prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
+    print(f"Prompt: {prompt}")
 
     # Tokenize the prompt
+    print("Tokenizing the prompt")
     input_ids = tokenizer(prompt, return_tensors="pt").to("cpu")
+    print(f"Input IDs: {input_ids}")
 
     # Generate an output of tokens
-    outputs = model.generate(**input_ids,
-                                 temperature=temperature,
-                                 do_sample=True,
-                                 max_new_tokens=max_new_tokens)
+    print("Generating output tokens")
+    outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
+    print(f"Output tokens: {outputs}")
 
     # Turn the output tokens into text
     output_text = tokenizer.decode(outputs[0])
+    print(f"Output text before formatting: {output_text}")
 
     if format_answer_text:
         # Replace special tokens and unnecessary help message
         output_text = output_text.replace(prompt, "").replace("<bos>", "").replace("<eos>", "").replace("Sure, here is the answer to the user query:\n\n", "")
+        print(f"Output text after formatting: {output_text}")
 
     # Only return the answer without the context items
     if return_answer_only:
+        print("Returning answer only")
         return output_text
 
+    print("Returning answer with context items")
     return output_text, context_items
+
 
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
