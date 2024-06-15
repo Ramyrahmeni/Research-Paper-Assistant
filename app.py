@@ -16,6 +16,16 @@ GOOGLE_API_KEY = os.getenv("API_KEY")
 
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-pro')
+def translate_role_for_streamlit(user_role):
+    if user_role == "model":
+        return "assistant"
+    else:
+        return user_role
+
+
+# Initialize chat session in Streamlit if not already present
+if "chat_session" not in st.session_state:
+    st.session_state.chat_session = model.start_chat(history=[])
 def prompt_formatter(query: str,
                      context_items: list[dict],tokenizer) -> str:
     """
@@ -198,9 +208,85 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
 
     # Format the prompt with context items
     st.text("Formatting the prompt")
-    prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
+    #prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
+    prompt = """
+    You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
+
+    Context: {context}
+
+    For each question, provide an easy-to-understand answer and specify the page number where the relevant information is located.
+
+    Examples:
+    Question: Who is the Scrum Master in my report?
+    Answer: Mr. Feryel Beji is the Scrum Master. (Page 3)
+
+    Question: What is the project start date?
+    Answer: The project started on June 1st, 2023. (Page 2)
+
+    Question: How many members are in the development team?
+    Answer: The development team consists of 5 members: John, Alice, Bob, Eve, and Charlie. (Page 3)
+
+    Question: What methodology does the project use?
+    Answer: The project uses Agile methodology. (Page 4)
+
+    Question: Who are the members of the development team?
+    Answer: The development team members are John, Alice, Bob, Eve, and Charlie. (Page 3)
+
+    Question: Who is the client for this project?
+    Answer: The client for this project is ABC Corp. (Page 5)
+
+    Question: What is the main finding of the market analysis?
+    Answer: The main finding of the market analysis is that the demand for eco-friendly products is rapidly increasing. (Page 6)
+
+    Question: What are the key points of the financial report?
+    Answer: The key points of the financial report are a 15% increase in revenue and a 10% decrease in operational costs. (Page 7)
+
+    Question: What are the goals of the upcoming quarter?
+    Answer: The goals of the upcoming quarter are to expand market reach and improve customer satisfaction. (Page 8)
+
+    Question: What technology stack is being used for the project?
+    Answer: The technology stack includes React for the frontend, Node.js for the backend, and MongoDB for the database. (Page 9)
+
+    Question: What are the identified risks in the risk assessment?
+    Answer: The identified risks include potential delays due to supply chain issues and data security concerns. (Page 10)
+
+    Question: What is the primary objective of the project?
+    Answer: The primary objective of the project is to develop a scalable e-commerce platform. (Page 11)
+
+    Question: Who won the most recent Super Bowl?
+    Answer: The Kansas City Chiefs won the most recent Super Bowl. (Page 12)
+
+    Question: What is the main theme of Picasso's "Guernica"?
+    Answer: The main theme of Picasso's "Guernica" is the horrors of war and the suffering it causes. (Page 13)
+
+    Question: What was the significance of the Battle of Gettysburg?
+    Answer: The Battle of Gettysburg was a turning point in the American Civil War, marking the defeat of the largest Confederate army. (Page 14)
+
+    Question: Who developed the theory of relativity?
+    Answer: Albert Einstein developed the theory of relativity. (Page 15)
+
+    Question: What are the key benefits of renewable energy?
+    Answer: The key benefits of renewable energy include reducing greenhouse gas emissions, decreasing air pollution, and providing sustainable power sources. (Page 16)
+
+    Question: Who is the author of "To Kill a Mockingbird"?
+    Answer: Harper Lee is the author of "To Kill a Mockingbird". (Page 17)
+
+    Question: What is the capital of France?
+    Answer: The capital of France is Paris. (Page 18)
+
+    Question: What are the main components of a computer?
+    Answer: The main components of a computer are the central processing unit (CPU), memory (RAM), storage, and input/output devices. (Page 19)
+
+    Question: What is the process of photosynthesis?
+    Answer: Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water. (Page 20)
+
+    Now, respond to the following question:
+
+    Question: {query}
+    Answer:
+    """
     st.text(f"Prompt: {prompt}")
-    messages=[{"role":"user","content":prompt}]
+    '''messages=[{"role":"user","content":prompt}]
     # Tokenize the prompt
     st.text("Tokenizing the prompt")
     input_ids = tokenizer(prompt, return_tensors="pt").to("cpu")
@@ -225,7 +311,9 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
         messages, max_new_tokens=256, 
         do_sample=True, temperature=0.6, top_p=0.9
     )
-    print(outputs[0]["generated_text"][-1])
+    print(outputs[0]["generated_text"][-1])'''
+    gemini_response = st.session_state.chat_session.send_message(prompt)
+    st.text(gemini_response.text)
     '''outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
     st.text(f"Output tokens: {outputs}")'''
     '''pipe = pipeline(
@@ -281,9 +369,8 @@ def main():
     MAX_UPLOAD_SIZE_MB = 30
     MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
     
-    pdf = st.file_uploader(f"Upload your PDF (Limit {MAX_UPLOAD_SIZE_MB}MB per file)", type='pdf')
+    pdf = st.file_uploader(f"Upload your PDF", type='pdf')
     query = st.text_input("Ask questions about your PDF file:")
-    st.text(model)
     if pdf:
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
@@ -328,13 +415,13 @@ def main():
                         trust_remote_code=True, 
                         token='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'
                         )
-                print(model)
-                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')'''
-                '''ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
+                print(model)'''
+                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
+                ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
                     temperature=0.7,
                     max_new_tokens=512,
                     format_answer_text=True,
-                    return_answer_only=True)'''
+                    return_answer_only=True)
             #st.text(answer)
 
 if __name__ == "__main__":
