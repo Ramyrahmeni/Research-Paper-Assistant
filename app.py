@@ -209,9 +209,8 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     # Format the prompt with context items
     st.text("Formatting the prompt")
     #prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
-    prompt = """You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
-
-    Context: {context}
+    prompt = f"""You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
+    Context: {context_items}
 
     For each question, provide an easy-to-understand answer and specify the page number where the relevant information is located.
 
