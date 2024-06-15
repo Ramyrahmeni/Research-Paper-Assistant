@@ -197,6 +197,7 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     st.text("Formatting the prompt")
     prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
     st.text(f"Prompt: {prompt}")
+    messages=[{"role":"user","content":prompt}]
     # Tokenize the prompt
     st.text("Tokenizing the prompt")
     input_ids = tokenizer(prompt, return_tensors="pt").to("cpu")
@@ -204,9 +205,9 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     st.text(model)
     # Generate an output of tokens
     st.text("Generating output tokens")
-    outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
-    st.text(f"Output tokens: {outputs}")
-    '''pipe = pipeline(
+    '''outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
+    st.text(f"Output tokens: {outputs}")'''
+    pipe = pipeline(
         "text-generation",
         model=model,
         tokenizer=tokenizer,
@@ -219,10 +220,10 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     }
 
     output = pipe(messages, **generation_args)
-    print(output[0]['generated_text'])
-    
+    st.text(output[0]['generated_text'])
+
     # Turn the output tokens into text
-    output_text = tokenizer.decode(outputs[0])
+    '''output_text = tokenizer.decode(outputs[0])
     print(f"Output text before formatting: {output_text}")
 
     if format_answer_text:
