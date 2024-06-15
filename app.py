@@ -5,14 +5,17 @@ from spacy.lang.en import English
 import re
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoTokenizer, AutoModelForCausalLM , pipeline
-
+import os
 from stqdm import stqdm  
 import torch
 import textwrap
 from dotenv import load_dotenv
-import os
-def configure():
-    load_dotenv()
+import google.generativeai as gen_ai
+load_dotenv()
+GOOGLE_API_KEY = os.getenv("API_KEY")
+
+gen_ai.configure(api_key=GOOGLE_API_KEY)
+model = gen_ai.GenerativeModel('gemini-pro')
 def prompt_formatter(query: str,
                      context_items: list[dict],tokenizer) -> str:
     """
@@ -272,7 +275,7 @@ with st.sidebar:
     ''')
 
 def main():
-    configure()
+    
     st.header("Chat with PDF 💬")
     
     MAX_UPLOAD_SIZE_MB = 30
@@ -280,7 +283,7 @@ def main():
     
     pdf = st.file_uploader(f"Upload your PDF (Limit {MAX_UPLOAD_SIZE_MB}MB per file)", type='pdf')
     query = st.text_input("Ask questions about your PDF file:")
-    
+    st.text(model)
     if pdf:
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
@@ -319,19 +322,19 @@ def main():
                 '''print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,embedding_model=embedding_model,
                              embeddings=embeddings)'''
                 #importing the model 
-                model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", 
+                '''model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", 
                         device_map="cpu", 
                         torch_dtype="auto", 
                         trust_remote_code=True, 
                         token='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'
                         )
                 print(model)
-                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
-                ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
+                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')'''
+                '''ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
                     temperature=0.7,
                     max_new_tokens=512,
                     format_answer_text=True,
-                    return_answer_only=True)
+                    return_answer_only=True)'''
             #st.text(answer)
 
 if __name__ == "__main__":
