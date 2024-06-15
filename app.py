@@ -218,14 +218,8 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
         {"role": "user", "content": "Who are you?"}
     ]
 
-    terminators = [
-        pipeline.tokenizer.eos_token_id, 
-        pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")
-    ]
-
     outputs = pipe(
         messages, max_new_tokens=256, 
-        eos_token_id=terminators, 
         do_sample=True, temperature=0.6, top_p=0.9
     )
     print(outputs[0]["generated_text"][-1])
