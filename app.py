@@ -207,7 +207,7 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     st.text("Generating output tokens")
 
     model_id = "andrijdavid/Llama-3-2B-Base"
-    pipeline =pipeline(
+    pipe = pipeline(
         "text-generation", model=model_id, 
         model_kwargs={"torch_dtype": torch.bfloat16}, 
         device_map="auto"
@@ -223,7 +223,7 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
         pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")
     ]
 
-    outputs = pipeline(
+    outputs = pipe(
         messages, max_new_tokens=256, 
         eos_token_id=terminators, 
         do_sample=True, temperature=0.6, top_p=0.9
