@@ -15,7 +15,7 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
 
 gen_ai.configure(api_key=GOOGLE_API_KEY)
-model = gen_ai.GenerativeModel('gemini-1.5-pro-latest')
+model = gen_ai.GenerativeModel('gemini-pro')
 def translate_role_for_streamlit(user_role):
     if user_role == "model":
         return "assistant"
@@ -147,7 +147,7 @@ def retrieve_relevant_resources(query: str,
     dot_scores = util.dot_score(query_embedding, embeddings)[0]
     
     # Get the number of scores above a threshold (e.g., 0.5)
-    valid_scores = dot_scores 
+    valid_scores = dot_scores > 0.1
     cnt = valid_scores.sum().item()
     
     # Get top K scores and their indices
@@ -312,8 +312,39 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     print(outputs[0]["generated_text"][-1])'''
     gemini_response = st.session_state.chat_session.send_message(prompt)
     st.text(gemini_response.text)
- 
+    '''outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
+    st.text(f"Output tokens: {outputs}")'''
+    '''pipe = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+    )
+    generation_args = {
+        "max_new_tokens": 500,
+        "return_full_text": False,
+        "temperature": 0.0,
+        "do_sample": False,
+    }
 
+    output = pipe(messages, **generation_args)
+    st.text(output[0]['generated_text'])'''
+
+    # Turn the output tokens into text
+    '''output_text = tokenizer.decode(outputs[0])
+    print(f"Output text before formatting: {output_text}")
+
+    if format_answer_text:
+        # Replace special tokens and unnecessary help message
+        output_text = output_text.replace(prompt, "").replace("<bos>", "").replace("<eos>", "").replace("Sure, here is the answer to the user query:\n\n", "")
+        print(f"Output text after formatting: {output_text}")
+
+    # Only return the answer without the context items
+    if return_answer_only:
+        print("Returning answer only")
+        return output_text
+
+    print("Returning answer with context items")
+    return output_text, context_items'''
 
 
 with st.sidebar:
