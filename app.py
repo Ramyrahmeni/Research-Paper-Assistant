@@ -202,12 +202,36 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     st.text("Tokenizing the prompt")
     input_ids = tokenizer(prompt, return_tensors="pt").to("cpu")
     st.text(f"Input IDs: {input_ids}")
-    st.text(model)
+    #st.text(model)
     # Generate an output of tokens
     st.text("Generating output tokens")
+
+    model_id = "andrijdavid/Llama-3-2B-Base"
+    pipeline =pipeline(
+        "text-generation", model=model_id, 
+        model_kwargs={"torch_dtype": torch.bfloat16}, 
+        device_map="auto"
+    )
+
+    messages = [
+        {"role": "system", "content": "You are a pirate chatbot who always responds in pirate speak!"},
+        {"role": "user", "content": "Who are you?"}
+    ]
+
+    terminators = [
+        pipeline.tokenizer.eos_token_id, 
+        pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")
+    ]
+
+    outputs = pipeline(
+        messages, max_new_tokens=256, 
+        eos_token_id=terminators, 
+        do_sample=True, temperature=0.6, top_p=0.9
+    )
+    print(outputs[0]["generated_text"][-1])
     '''outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
     st.text(f"Output tokens: {outputs}")'''
-    pipe = pipeline(
+    '''pipe = pipeline(
         "text-generation",
         model=model,
         tokenizer=tokenizer,
@@ -220,7 +244,7 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     }
 
     output = pipe(messages, **generation_args)
-    st.text(output[0]['generated_text'])
+    st.text(output[0]['generated_text'])'''
 
     # Turn the output tokens into text
     '''output_text = tokenizer.decode(outputs[0])
