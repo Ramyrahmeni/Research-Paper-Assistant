@@ -4,7 +4,7 @@ import pandas as pd
 from spacy.lang.en import English
 import re
 from sentence_transformers import SentenceTransformer, util
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM , pipeline
 
 from stqdm import stqdm  
 import torch
@@ -203,10 +203,24 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     st.text(f"Input IDs: {input_ids}")
     st.text(model)
     # Generate an output of tokens
-    '''print("Generating output tokens")
+    st.text("Generating output tokens")
     outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
-    print(f"Output tokens: {outputs}")
+    st.text(f"Output tokens: {outputs}")
+    '''pipe = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+    )
+    generation_args = {
+        "max_new_tokens": 500,
+        "return_full_text": False,
+        "temperature": 0.0,
+        "do_sample": False,
+    }
 
+    output = pipe(messages, **generation_args)
+    print(output[0]['generated_text'])
+    
     # Turn the output tokens into text
     output_text = tokenizer.decode(outputs[0])
     print(f"Output text before formatting: {output_text}")
