@@ -37,7 +37,7 @@ def prompt_formatter(query: str,
     # Create a base prompt with examples to help the model
     # Note: this is very customizable, I've chosen to use 3 examples of the answer style we'd like.
     # We could also write this in a txt file and import it in if we wanted.
-    base_prompt = """Based on the following context items, please answer the query.
+    base_prompt = f"""Based on the following context items, please answer the query.
 Give yourself room to think by extracting relevant passages from the context before answering the query.
 Don't return the thinking, only return the answer.
 Make sure your answers are as explanatory as possible.
@@ -209,8 +209,7 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     # Format the prompt with context items
     st.text("Formatting the prompt")
     #prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
-    prompt = """
-    You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
+    prompt = """You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
 
     Context: {context}
 
