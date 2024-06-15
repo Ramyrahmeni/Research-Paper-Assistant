@@ -194,16 +194,16 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     #st.text(f"Context items: {context_items}")
 
     # Format the prompt with context items
-    print("Formatting the prompt")
+    st.text("Formatting the prompt")
     prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
     st.text(f"Prompt: {prompt}")
     # Tokenize the prompt
-    '''print("Tokenizing the prompt")
+    st.text("Tokenizing the prompt")
     input_ids = tokenizer(prompt, return_tensors="pt").to("cpu")
-    print(f"Input IDs: {input_ids}")
-
+    st.text(f"Input IDs: {input_ids}")
+    st.text(model)
     # Generate an output of tokens
-    print("Generating output tokens")
+    '''print("Generating output tokens")
     outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
     print(f"Output tokens: {outputs}")
 
