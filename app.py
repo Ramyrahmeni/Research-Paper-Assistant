@@ -352,7 +352,7 @@ def main():
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
-        if "embeddings" not in st.session_state: 
+        if "embeddings" not in st.session_state and "embedding_model" not in st.session_state and "pages_and_chunks" not in st.session_state : 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
 
