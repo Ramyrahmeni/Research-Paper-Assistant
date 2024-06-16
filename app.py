@@ -320,8 +320,13 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
         "question": "What are the two parts of Einstein's theory of relativity?",
         "answer": "Einstein's theory of relativity consists of two parts: special relativity, which deals with objects moving at constant speeds, and general relativity, which describes gravity as the curvature of spacetime. (Page 41)"
     },
-    ]
-    # Example 8: Art
+    #Example8 Sports:
+    {
+    "context": [],
+    "question": "What is the history of soccer?",
+    "answer": "Sorry, I can't provide an answer without context. Please adjust your question to include specific details or provide context about the history of soccer you're interested in. Note: This question appears to be irrelevant to the book's content."
+    },
+    # Example 9: Art
     {
         "context": [
             {
@@ -336,6 +341,8 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
         "question": "Who are some notable Impressionist artists?",
         "answer": "Notable Impressionist artists include Claude Monet, Pierre-Auguste Renoir, and Edgar Degas. (Page 91)"
     }
+    ]
+    
 
     #prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
     prompt = f"""You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
