@@ -11,6 +11,8 @@ import torch
 import textwrap
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
+import gc
+
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
 
@@ -393,7 +395,10 @@ def main():
         for message in st.session_state.chat_session.history:
             with st.chat_message(translate_role_for_streamlit(message.role)):
                 st.markdown(message.parts[0].text)
-                
+    else:
+        if "embeddings" in st.session_state:
+            del st.session_state.embeddings
+            gc.collect()
 
 if __name__ == "__main__":
     main()
