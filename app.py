@@ -375,10 +375,10 @@ def main():
             
             pages_and_chunks = pages_chunks(pages_and_texts)
             df = pd.DataFrame(pages_and_chunks)
-            pages_and_chunks = elimination_chunks(df, 30)
+            st.session_state.pages_and_chunks = elimination_chunks(df, 30)
             
             text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
-            embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")            
+            st.session_state.embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")            
 
         if btn:
 
@@ -386,8 +386,8 @@ def main():
 
                 with st.spinner('Generating response...'):
                     if "embeddings" not in st.session_state:
-                            st.session_state.embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
-                    rep=ask(query,embedding_model,st.session_state.embeddings,pages_and_chunks)
+                            st.session_state.embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
+                    rep=ask(query,st.session_state.embedding_model,st.session_state.embeddings,st.session_state.pages_and_chunks)
         st.write("\n\n")
         for message in reversed(st.session_state.chat_session.history):
             if message.role=="user":
