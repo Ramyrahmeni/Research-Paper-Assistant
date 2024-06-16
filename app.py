@@ -322,10 +322,10 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     },
     #Example8 Sports:
     {
-    "context": [],
-    "question": "What is the history of soccer?",
-    "answer": "Sorry, I can't provide an answer without context. Please adjust your question to include specific details or provide context about the history of soccer you're interested in. Note: This question appears to be irrelevant to the book's content."
-    },
+        "Context": [],
+        "Question": "What is the history of soccer?",
+        "Answer": "Sorry, your question is irrelevant to the book's content. Please adjust your question to include specific details related to the book."
+        },
     # Example 9: Art
     {
         "context": [
@@ -340,7 +340,17 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
         ],
         "question": "Who are some notable Impressionist artists?",
         "answer": "Notable Impressionist artists include Claude Monet, Pierre-Auguste Renoir, and Edgar Degas. (Page 91)"
-    }
+    },
+   # Example 10:History-context irrelevant to question
+    {
+        
+        "context": [{{
+            "page_number": 10,
+            "sentence_chunk": "Chapter 1: Ancient Civilizations. This chapter explores the rise and fall of ancient civilizations across the globe, including their cultural achievements and societal structures.",
+        }}],
+        "question": "What is the impact of the Industrial Revolution on ancient civilizations?",
+        "answer": "Please adjust your question to focus on ancient civilizations or related topics covered in the book. (Chapter 1: Ancient Civilizations)"
+            }
     ]
     
 
