@@ -318,7 +318,6 @@ def ask(query, embedding_model, embeddings, pages_and_chunks):
     Question: {query}
     Answer:
     """
-    st.text(f"Prompt: {prompt}")
     
     gemini_response = st.session_state.chat_session.send_message(prompt)
     
@@ -340,10 +339,7 @@ with st.sidebar:
 def main():
     
     st.header("Chat with PDF 💬")
-    st.write("\n\n")
-    for message in st.session_state.chat_session.history:
-        with st.chat_message(translate_role_for_streamlit(message.role)):
-            st.markdown(message.parts[0].text)
+    
     MAX_UPLOAD_SIZE_MB = 30
     MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
     
@@ -393,6 +389,10 @@ def main():
                     rep=ask(query,embedding_model,st.session_state.embeddings,pages_and_chunks)
                     with st.chat_message("assistant"):
                         st.markdown(rep.text)
+        st.write("\n\n")
+        for message in st.session_state.chat_session.history:
+            with st.chat_message(translate_role_for_streamlit(message.role)):
+                st.markdown(message.parts[0].text)
                 
 
 if __name__ == "__main__":
