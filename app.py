@@ -22,10 +22,9 @@ def translate_role_for_streamlit(user_role):
     else:
         return user_role
 
-
-# Initialize chat session in Streamlit if not already present
 if "chat_session" not in st.session_state:
-    st.session_state.chat_history = model.start_chat(history=[])
+    st.session_state.chat_session = model.start_chat(history=[])
+# Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
     cleaned_text = text.replace("\n", " ").strip()  
@@ -136,8 +135,7 @@ def print_top_results_and_scores(query: str,
         st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
         st.write("\n")
     return context_items
-def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
-        temperature=0.7, max_new_tokens=512, format_answer_text=True, return_answer_only=True):
+def ask(query, embedding_model, embeddings, pages_and_chunks):
     """
     Takes a query, finds relevant resources/context and generates an answer to the query based on the relevant resources.
     """
@@ -325,7 +323,6 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     gemini_response = st.session_state.chat_session.send_message(prompt)
     
 
-    st.text(gemini_response.text)
     return gemini_response
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
@@ -344,10 +341,9 @@ def main():
     
     st.header("Chat with PDF 💬")
     st.write("\n\n")
-    st.subheader("Chat History:")
-    for chat in st.session_state.chat_history:
-        role = translate_role_for_streamlit(chat["role"])
-        st.write(f"{role}: {chat['content']}")
+    for message in st.session_state.chat_session.history:
+        with st.chat_message(translate_role_for_streamlit(message.role)):
+            st.markdown(message.parts[0].text)
     MAX_UPLOAD_SIZE_MB = 30
     MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
     
@@ -388,26 +384,13 @@ def main():
         if st.button("Ask"):
 
             if query:
+                st.chat_message("user").markdown(query)
+
                 with st.spinner('Generating response...'):
                     embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
-                    '''print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,embedding_model=embedding_model,
-                                embeddings=embeddings)'''
-                    #importing the model 
-                    '''model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", 
-                            device_map="cpu", 
-                            torch_dtype="auto", 
-                            trust_remote_code=True, 
-                            token='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'
-                            )
-                    print(model)'''
-                    tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
-                    rep=ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
-                        temperature=0.7,
-                        max_new_tokens=512,
-                        format_answer_text=True,
-                        return_answer_only=True)
-                    st.session_state.chat_history.append({"role": "user", "content": query})
-                    st.session_state.chat_history.append({"role": "model", "content": rep.text})
+                    rep=ask(query,embedding_model,embeddings,pages_and_chunks)
+                    with st.chat_message("assistant"):
+                        st.markdown(rep.text)
                 
 
 if __name__ == "__main__":
