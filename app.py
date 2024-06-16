@@ -378,8 +378,9 @@ def main():
             st.session_state.pages_and_chunks = elimination_chunks(df, 30)
             
             text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
-            st.session_state.embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
-            st.session_state.embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")            
+            
+            st.session_state.embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")          
+            st.session_state.embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
 
         if btn:
 
