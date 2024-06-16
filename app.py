@@ -26,51 +26,6 @@ def translate_role_for_streamlit(user_role):
 # Initialize chat session in Streamlit if not already present
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
-def prompt_formatter(query: str,
-                     context_items: list[dict],tokenizer) -> str:
-    """
-    Augments query with text-based context from context_items.
-    """
-    # Join context items into one dotted paragraph
-    context = "- " + "\n- ".join([item["sentence_chunk"] for item in context_items])
-
-    # Create a base prompt with examples to help the model
-    # Note: this is very customizable, I've chosen to use 3 examples of the answer style we'd like.
-    # We could also write this in a txt file and import it in if we wanted.
-    base_prompt = f"""Based on the following context items, please answer the query.
-Give yourself room to think by extracting relevant passages from the context before answering the query.
-Don't return the thinking, only return the answer.
-Make sure your answers are as explanatory as possible.
-Use the following examples as reference for the ideal answer style.
-\nExample 1:
-Query: What is the Stoic concept of 'apatheia'?
-Answer: The Stoic concept of 'apatheia' refers to a state of mind where one is free from unhealthy passions or disturbances, such as excessive desires, fears, or anxieties. It does not mean total emotional detachment, but rather a calm and balanced state of being where one's emotions are under rational control. Apatheia allows individuals to respond to external events with clarity and equanimity, without being overwhelmed by emotional reactions.
-\nExample 2:
-Query: How did Stoicism influence Roman philosophy and society?
-Answer: Stoicism had a profound influence on Roman philosophy and society, particularly during the Imperial period. Roman Stoics such as Seneca, Epictetus, and Marcus Aurelius emphasized principles of virtue, self-discipline, and resilience in the face of adversity. Stoic teachings were integrated into Roman educational systems, legal theory, and political discourse, shaping the moral character of individuals and the governance of the empire. The Stoic emphasis on duty, justice, and natural law contributed to the development of Roman law and ethics.
-\nExample 3:
-Query: What are some Stoic practices for achieving tranquility?
-Answer: Stoics employ various practices to cultivate tranquility and inner peace, such as negative visualization, mindfulness of the present moment, and voluntary discomfort. Negative visualization involves contemplating the loss of things we value, which helps to appreciate them more fully and reduce attachment. Mindfulness helps individuals focus on what is within their control and accept the present moment without judgment. Voluntary discomfort, such as fasting or exposure to cold, builds resilience and strengthens the willpower to endure hardship.
-\nNow use the following context items to answer the user query:
-{context}
-\nRelevant passages: <extract relevant passages from the context here>
-User query: {query}
-Answer:"""
-
-    # Update base prompt with context items and query
-    base_prompt = base_prompt.format(context=context, query=query)
-
-    # Create prompt template for instruction-tuned model
-    dialogue_template = [
-        {"role": "user",
-        "content": base_prompt}
-    ]
-
-    # Apply the chat template
-    prompt = tokenizer.apply_chat_template(conversation=dialogue_template,
-                                          tokenize=False,
-                                          add_generation_prompt=True)
-    return prompt
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
     cleaned_text = text.replace("\n", " ").strip()  
@@ -353,7 +308,6 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     ]
     
 
-    #prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
     prompt = f"""You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
     Context: {context_items}
 
@@ -369,8 +323,10 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     st.text(f"Prompt: {prompt}")
     
     gemini_response = st.session_state.chat_session.send_message(prompt)
-    st.text(gemini_response.text)
+    
 
+    st.text(gemini_response.text)
+    return gemini_response
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
     st.markdown('''
@@ -387,7 +343,11 @@ with st.sidebar:
 def main():
     
     st.header("Chat with PDF 💬")
-    
+    st.write("\n\n")
+    st.subheader("Chat History:")
+    for chat in st.session_state.chat_history:
+        role = translate_role_for_streamlit(chat["role"])
+        st.write(f"{role}: {chat['content']}")
     MAX_UPLOAD_SIZE_MB = 30
     MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
     
@@ -425,26 +385,30 @@ def main():
         text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
         embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")            
 
-        if query:
-            with st.spinner('Generating response...'):
-                embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
-                '''print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,embedding_model=embedding_model,
-                             embeddings=embeddings)'''
-                #importing the model 
-                '''model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", 
-                        device_map="cpu", 
-                        torch_dtype="auto", 
-                        trust_remote_code=True, 
-                        token='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'
-                        )
-                print(model)'''
-                tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
-                ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
-                    temperature=0.7,
-                    max_new_tokens=512,
-                    format_answer_text=True,
-                    return_answer_only=True)
-            #st.text(answer)
+        if st.button("Ask"):
+
+            if query:
+                with st.spinner('Generating response...'):
+                    embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
+                    '''print_top_results_and_scores(query=query,pages_and_chunks=pages_and_chunks,embedding_model=embedding_model,
+                                embeddings=embeddings)'''
+                    #importing the model 
+                    '''model = AutoModelForCausalLM.from_pretrained("microsoft/Phi-3-mini-4k-instruct", 
+                            device_map="cpu", 
+                            torch_dtype="auto", 
+                            trust_remote_code=True, 
+                            token='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'
+                            )
+                    print(model)'''
+                    tokenizer = AutoTokenizer.from_pretrained("microsoft/Phi-3-mini-4k-instruct",token='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')
+                    rep=ask(query,model,embedding_model,embeddings,pages_and_chunks,tokenizer,
+                        temperature=0.7,
+                        max_new_tokens=512,
+                        format_answer_text=True,
+                        return_answer_only=True)
+                    st.session_state.chat_history.append({"role": "user", "content": query})
+                    st.session_state.chat_history.append({"role": "model", "content": rep.text})
+                
 
 if __name__ == "__main__":
     main()
