@@ -15,7 +15,7 @@ load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
 
 gen_ai.configure(api_key=GOOGLE_API_KEY)
-model = gen_ai.GenerativeModel('gemini-pro')
+model = gen_ai.GenerativeModel('gemini-1.5-pro')
 def translate_role_for_streamlit(user_role):
     if user_role == "model":
         return "assistant"
@@ -208,75 +208,142 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
 
     # Format the prompt with context items
     st.text("Formatting the prompt")
+    examples = [
+    # Example 1: Project Management
+    {
+        "context": [
+            {
+                "page_number": 20,
+                "sentence_chunk": "1.5. Adopted Methodology 11 The main elements of Scrum include roles, events, and artifacts. The Scrumban team consists of three roles: the Product Owner, who represents the stakeholders and manages the product backlog. The Scrum Master, who facilitates the Scrum process and supports the team. The Developers, who are responsible for delivering increments of product functionalities. Figure 1.6 shows brief summary of how Scrumban team works."
+            },
+            {
+                "page_number": 21,
+                "sentence_chunk": "1.5 Adopted Methodology In defining our project management approach, we have adopted a dual methodology, leveraging both Scrumban and the CRISP-DM framework. Scrumban, a hybrid of Kanban’s adaptability and Scrum’s structure, offers us the ideal blend of flexibility and organization."
+            }
+        ],
+        "question": "Who is the Scrum Master in my report?",
+        "answer": "The Scrum Master for the current project is Dr. Feryel Beji. She facilitates the Scrum process and supports the team. (Page 20)"
+    },
+    
+    # Example 2: Sports
+    {
+        "context": [
+            {
+                "page_number": 50,
+                "sentence_chunk": "Chapter 5: The History of Soccer. Soccer, known as football outside the United States, has a rich history dating back to ancient civilizations. Modern soccer began to take shape in England in the 19th century."
+            },
+            {
+                "page_number": 51,
+                "sentence_chunk": "The first official soccer match took place in 1863 in London, which also saw the establishment of The Football Association. This marked the beginning of organized soccer with standardized rules."
+            }
+        ],
+        "question": "When and where did the first official soccer match take place?",
+        "answer": "The first official soccer match took place in 1863 in London. (Page 51)"
+    },
+    
+    # Example 3: Technology
+    {
+        "context": [
+            {
+                "page_number": 30,
+                "sentence_chunk": "Chapter 3: The Evolution of Artificial Intelligence. Artificial intelligence (AI) has seen significant advancements since its inception. Early AI research in the 1950s focused on problem-solving and symbolic methods."
+            },
+            {
+                "page_number": 31,
+                "sentence_chunk": "In recent years, AI has expanded to include machine learning, where systems improve their performance through experience. Deep learning, a subset of machine learning, uses neural networks with many layers to analyze complex data patterns."
+            }
+        ],
+        "question": "What are the recent advancements in AI?",
+        "answer": "Recent advancements in AI include the development of machine learning and deep learning, which use neural networks to analyze complex data patterns. (Page 31)"
+    },
+    
+    # Example 4: Literature
+    {
+        "context": [
+            {
+                "page_number": 10,
+                "sentence_chunk": "Chapter 1: The Renaissance in Literature. The Renaissance period, spanning from the 14th to the 17th century, marked a revival of interest in the classical art, literature, and learning of ancient Greece and Rome."
+            },
+            {
+                "page_number": 11,
+                "sentence_chunk": "Key figures in Renaissance literature include Dante Alighieri, Geoffrey Chaucer, and William Shakespeare. Their works often explored themes of humanism, individualism, and the complexities of the human condition."
+            }
+        ],
+        "question": "Who were some key figures in Renaissance literature?",
+        "answer": "Key figures in Renaissance literature include Dante Alighieri, Geoffrey Chaucer, and William Shakespeare. (Page 11)"
+    },
+    
+    # Example 5: Philosophy
+    {
+        "context": [
+            {
+                "page_number": 60,
+                "sentence_chunk": "Chapter 6: Existentialism. Existentialism is a philosophical movement that emerged in the 20th century, emphasizing individual freedom, choice, and existence. It is often associated with philosophers such as Jean-Paul Sartre, Friedrich Nietzsche, and Søren Kierkegaard."
+            },
+            {
+                "page_number": 61,
+                "sentence_chunk": "Central themes in existentialism include the absurdity of life, the inevitability of death, and the necessity of making meaningful choices in an indifferent universe."
+            }
+        ],
+        "question": "What are the central themes in existentialism?",
+        "answer": "Central themes in existentialism include the absurdity of life, the inevitability of death, and the necessity of making meaningful choices in an indifferent universe. (Page 61)"
+    },
+    
+    # Example 6: History
+    {
+        "context": [
+            {
+                "page_number": 75,
+                "sentence_chunk": "Chapter 7: The Industrial Revolution. The Industrial Revolution, which began in the late 18th century, was a period of great technological innovation and economic change. It started in Britain and soon spread to other parts of the world."
+            },
+            {
+                "page_number": 76,
+                "sentence_chunk": "Key inventions of the Industrial Revolution include the steam engine, the spinning jenny, and the power loom. These innovations greatly increased production capabilities and efficiency."
+            }
+        ],
+        "question": "What were some key inventions of the Industrial Revolution?",
+        "answer": "Key inventions of the Industrial Revolution include the steam engine, the spinning jenny, and the power loom. (Page 76)"
+    },
+    
+    # Example 7: Science
+    {
+        "context": [
+            {
+                "page_number": 40,
+                "sentence_chunk": "Chapter 4: The Theory of Relativity. Albert Einstein's theory of relativity revolutionized our understanding of space, time, and gravity. The theory consists of two parts: special relativity and general relativity."
+            },
+            {
+                "page_number": 41,
+                "sentence_chunk": "Special relativity, introduced in 1905, deals with objects moving at constant speeds, particularly at speeds close to the speed of light. General relativity, introduced in 1915, provides a new description of gravity as the curvature of spacetime."
+            }
+        ],
+        "question": "What are the two parts of Einstein's theory of relativity?",
+        "answer": "Einstein's theory of relativity consists of two parts: special relativity, which deals with objects moving at constant speeds, and general relativity, which describes gravity as the curvature of spacetime. (Page 41)"
+    },
+    ]
+    # Example 8: Art
+    {
+        "context": [
+            {
+                "page_number": 90,
+                "sentence_chunk": "Chapter 9: The Impressionist Movement. The Impressionist movement, which began in the late 19th century, sought to capture the effects of light and color in everyday scenes. It marked a departure from traditional artistic techniques and subjects."
+            },
+            {
+                "page_number": 91,
+                "sentence_chunk": "Notable Impressionist artists include Claude Monet, Pierre-Auguste Renoir, and Edgar Degas. Their works often featured vibrant colors and loose brushwork to convey the impression of a moment in time."
+            }
+        ],
+        "question": "Who are some notable Impressionist artists?",
+        "answer": "Notable Impressionist artists include Claude Monet, Pierre-Auguste Renoir, and Edgar Degas. (Page 91)"
+    }
+
     #prompt = prompt_formatter(query=query, context_items=context_items, tokenizer=tokenizer)
     prompt = f"""You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
     Context: {context_items}
 
-    For each question, provide an easy-to-understand answer and specify the page number where the relevant information is located.
+    For each question, provide an easy-to-understand answer and specify the page number where the relevant information is located and make it more rich if its possible and you have knowledge about it.
 
-    Examples:
-    Question: Who is the Scrum Master in my report?
-    Answer: Mr. Feryel Beji is the Scrum Master. (Page 3)
-
-    Question: What is the project start date?
-    Answer: The project started on June 1st, 2023. (Page 2)
-
-    Question: How many members are in the development team?
-    Answer: The development team consists of 5 members: John, Alice, Bob, Eve, and Charlie. (Page 3)
-
-    Question: What methodology does the project use?
-    Answer: The project uses Agile methodology. (Page 4)
-
-    Question: Who are the members of the development team?
-    Answer: The development team members are John, Alice, Bob, Eve, and Charlie. (Page 3)
-
-    Question: Who is the client for this project?
-    Answer: The client for this project is ABC Corp. (Page 5)
-
-    Question: What is the main finding of the market analysis?
-    Answer: The main finding of the market analysis is that the demand for eco-friendly products is rapidly increasing. (Page 6)
-
-    Question: What are the key points of the financial report?
-    Answer: The key points of the financial report are a 15% increase in revenue and a 10% decrease in operational costs. (Page 7)
-
-    Question: What are the goals of the upcoming quarter?
-    Answer: The goals of the upcoming quarter are to expand market reach and improve customer satisfaction. (Page 8)
-
-    Question: What technology stack is being used for the project?
-    Answer: The technology stack includes React for the frontend, Node.js for the backend, and MongoDB for the database. (Page 9)
-
-    Question: What are the identified risks in the risk assessment?
-    Answer: The identified risks include potential delays due to supply chain issues and data security concerns. (Page 10)
-
-    Question: What is the primary objective of the project?
-    Answer: The primary objective of the project is to develop a scalable e-commerce platform. (Page 11)
-
-    Question: Who won the most recent Super Bowl?
-    Answer: The Kansas City Chiefs won the most recent Super Bowl. (Page 12)
-
-    Question: What is the main theme of Picasso's "Guernica"?
-    Answer: The main theme of Picasso's "Guernica" is the horrors of war and the suffering it causes. (Page 13)
-
-    Question: What was the significance of the Battle of Gettysburg?
-    Answer: The Battle of Gettysburg was a turning point in the American Civil War, marking the defeat of the largest Confederate army. (Page 14)
-
-    Question: Who developed the theory of relativity?
-    Answer: Albert Einstein developed the theory of relativity. (Page 15)
-
-    Question: What are the key benefits of renewable energy?
-    Answer: The key benefits of renewable energy include reducing greenhouse gas emissions, decreasing air pollution, and providing sustainable power sources. (Page 16)
-
-    Question: Who is the author of "To Kill a Mockingbird"?
-    Answer: Harper Lee is the author of "To Kill a Mockingbird". (Page 17)
-
-    Question: What is the capital of France?
-    Answer: The capital of France is Paris. (Page 18)
-
-    Question: What are the main components of a computer?
-    Answer: The main components of a computer are the central processing unit (CPU), memory (RAM), storage, and input/output devices. (Page 19)
-
-    Question: What is the process of photosynthesis?
-    Answer: Photosynthesis is the process by which green plants and some other organisms use sunlight to synthesize foods from carbon dioxide and water. (Page 20)
+    Examples:{examples}
 
     Now, respond to the following question:
 
