@@ -26,6 +26,12 @@ def translate_role_for_streamlit(user_role):
 
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
+if 'embeddings' not in st.session_state:
+        st.session_state.embeddings = None
+if 'embedding_model' not in st.session_state:
+        st.session_state.embedding_model = None
+if 'pages_and_chunks' not in st.session_state:
+        st.session_state.pages_and_chunks = None
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
@@ -339,12 +345,6 @@ with st.sidebar:
     ''')
 
 def main():
-    if 'embeddings' not in st.session_state:
-        st.session_state.embeddings = None
-    if 'embedding_model' not in st.session_state:
-        st.session_state.embedding_model = None
-    if 'pages_and_chunks' not in st.session_state:
-        st.session_state.pages_and_chunks = None
     st.header("Chat with PDF 💬")
     
     MAX_UPLOAD_SIZE_MB = 30
@@ -392,15 +392,15 @@ def main():
             if query:
                 with st.spinner('Generating response...'):
                     rep=ask(query,st.session_state.embedding_model,st.session_state.embeddings,st.session_state.pages_and_chunks)
+                    st.session_state.chat_session['history'].append({'role': 'user', 'parts': [{'text': f'Question: {query} Answer: {rep}'}]})
+                    st.session_state.chat_session['history'].append({'role': 'bot', 'parts': [{'text': rep}]})
         st.write("\n\n")
-        for message in reversed(st.session_state.chat_session.history):
-            if message.role=="user":
-                match = re.search(r"Question:\s*(.*)\s*Answer:", message.parts[0].text)
-                question = match.group(1)
-                st.markdown("Question:"+question)
+        for message in reversed(st.session_state.chat_session['history']):
+            if message['role'] == "user":
+                st.markdown(message['parts'][0]['text'])
             else:
-                with st.chat_message(translate_role_for_streamlit(message.role)):
-                    st.markdown(message.parts[0].text)
+                with st.chat_message(translate_role_for_streamlit(message['role'])):
+                    st.markdown(message['parts'][0]['text'])
 
     else:
         if "embeddings" in st.session_state:
