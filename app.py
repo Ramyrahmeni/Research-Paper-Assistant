@@ -388,8 +388,9 @@ def main():
                 st.chat_message("user").markdown(query)
 
                 with st.spinner('Generating response...'):
-                    embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
-                    rep=ask(query,embedding_model,embeddings,pages_and_chunks)
+                    if "embeddings" not in st.session_state:
+                            st.session_state.embeddings = embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)
+                    rep=ask(query,embedding_model,st.session_state.embeddings,pages_and_chunks)
                     with st.chat_message("assistant"):
                         st.markdown(rep.text)
                 
