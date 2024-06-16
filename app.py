@@ -207,7 +207,6 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     #st.text(f"Context items: {context_items}")
 
     # Format the prompt with context items
-    st.text("Formatting the prompt")
     examples = [
     # Example 1: Project Management
     {
@@ -344,10 +343,10 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
    # Example 10:History-context irrelevant to question
     {
         
-        "context": [{{
+        "context": [{
             "page_number": 10,
             "sentence_chunk": "Chapter 1: Ancient Civilizations. This chapter explores the rise and fall of ancient civilizations across the globe, including their cultural achievements and societal structures.",
-        }}],
+        }],
         "question": "What is the impact of the Industrial Revolution on ancient civilizations?",
         "answer": "Please adjust your question to focus on ancient civilizations or related topics covered in the book. (Chapter 1: Ancient Civilizations)"
             }
@@ -368,68 +367,9 @@ def ask(query, model, embedding_model, embeddings, pages_and_chunks, tokenizer,
     Answer:
     """
     st.text(f"Prompt: {prompt}")
-    '''messages=[{"role":"user","content":prompt}]
-    # Tokenize the prompt
-    st.text("Tokenizing the prompt")
-    input_ids = tokenizer(prompt, return_tensors="pt").to("cpu")
-    st.text(f"Input IDs: {input_ids}")
-    #st.text(model)
-    # Generate an output of tokens
-    st.text("Generating output tokens")
-
-    model_id = "andrijdavid/Llama-3-2B-Base"
-    pipe = pipeline(
-        "text-generation", model=model_id, 
-        model_kwargs={"torch_dtype": torch.bfloat16}, 
-        device_map="auto"
-    )
-
-    messages = [
-        {"role": "system", "content": "You are a pirate chatbot who always responds in pirate speak!"},
-        {"role": "user", "content": "Who are you?"}
-    ]
-
-    outputs = pipe(
-        messages, max_new_tokens=256, 
-        do_sample=True, temperature=0.6, top_p=0.9
-    )
-    print(outputs[0]["generated_text"][-1])'''
+    
     gemini_response = st.session_state.chat_session.send_message(prompt)
     st.text(gemini_response.text)
-    '''outputs = model.generate(**input_ids, temperature=temperature, do_sample=True, max_new_tokens=max_new_tokens)
-    st.text(f"Output tokens: {outputs}")'''
-    '''pipe = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer,
-    )
-    generation_args = {
-        "max_new_tokens": 500,
-        "return_full_text": False,
-        "temperature": 0.0,
-        "do_sample": False,
-    }
-
-    output = pipe(messages, **generation_args)
-    st.text(output[0]['generated_text'])'''
-
-    # Turn the output tokens into text
-    '''output_text = tokenizer.decode(outputs[0])
-    print(f"Output text before formatting: {output_text}")
-
-    if format_answer_text:
-        # Replace special tokens and unnecessary help message
-        output_text = output_text.replace(prompt, "").replace("<bos>", "").replace("<eos>", "").replace("Sure, here is the answer to the user query:\n\n", "")
-        print(f"Output text after formatting: {output_text}")
-
-    # Only return the answer without the context items
-    if return_answer_only:
-        print("Returning answer only")
-        return output_text
-
-    print("Returning answer with context items")
-    return output_text, context_items'''
-
 
 with st.sidebar:
     st.title('🤗💬 LLM Chat App')
