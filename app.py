@@ -25,7 +25,7 @@ def translate_role_for_streamlit(user_role):
 
 # Initialize chat session in Streamlit if not already present
 if "chat_session" not in st.session_state:
-    st.session_state.chat_session = model.start_chat(history=[])
+    st.session_state.chat_history = model.start_chat(history=[])
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
     cleaned_text = text.replace("\n", " ").strip()  
