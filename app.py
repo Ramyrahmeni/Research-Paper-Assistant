@@ -339,7 +339,12 @@ with st.sidebar:
     ''')
 
 def main():
-    
+    if 'embeddings' not in st.session_state:
+        st.session_state.embeddings = None
+    if 'embedding_model' not in st.session_state:
+        st.session_state.embedding_model = None
+    if 'pages_and_chunks' not in st.session_state:
+        st.session_state.pages_and_chunks = None
     st.header("Chat with PDF 💬")
     
     MAX_UPLOAD_SIZE_MB = 30
@@ -352,7 +357,7 @@ def main():
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
-        if "embeddings" not in st.session_state and "embedding_model" not in st.session_state and "pages_and_chunks" not in st.session_state : 
+        if st.session_state.embeddings is None and st.session_state.embedding_model is None and st.session_state.pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
 
@@ -385,7 +390,6 @@ def main():
         if btn:
 
             if query:
-
                 with st.spinner('Generating response...'):
                     rep=ask(query,st.session_state.embedding_model,st.session_state.embeddings,st.session_state.pages_and_chunks)
         st.write("\n\n")
