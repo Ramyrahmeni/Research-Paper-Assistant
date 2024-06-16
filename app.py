@@ -352,33 +352,33 @@ def main():
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
-        
-        with st.spinner('Processing PDF...'):
-            pages_and_texts = open_and_read_pdf(pdf)
+        if "embeddings" not in st.session_state: 
+            with st.spinner('Processing PDF...'):
+                pages_and_texts = open_and_read_pdf(pdf)
 
-        nlp = English()
-        nlp.add_pipe("sentencizer")
-        
-        for item in stqdm(pages_and_texts, desc="Tokenizing pages"):
-            item["sentences"] = list(nlp(item["text"]).sents)
-            item["sentences"] = [str(sentence) for sentence in item["sentences"]]
-            item["page_sentence_count_spacy"] = len(item["sentences"])
-        
-        df = pd.DataFrame(pages_and_texts)
-        sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
-        token = df['page_token_count'].describe().round(2)['mean']
-        slice_size = round((340 * sent) / token)
-        
-        for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
-            item["sentence_chunks"] = split_list(input_list=item["sentences"], slice_size=slice_size)
-            item["num_chunks"] = len(item["sentence_chunks"])
-        
-        pages_and_chunks = pages_chunks(pages_and_texts)
-        df = pd.DataFrame(pages_and_chunks)
-        pages_and_chunks = elimination_chunks(df, 30)
-        
-        text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
-        embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")            
+            nlp = English()
+            nlp.add_pipe("sentencizer")
+            
+            for item in stqdm(pages_and_texts, desc="Tokenizing pages"):
+                item["sentences"] = list(nlp(item["text"]).sents)
+                item["sentences"] = [str(sentence) for sentence in item["sentences"]]
+                item["page_sentence_count_spacy"] = len(item["sentences"])
+            
+            df = pd.DataFrame(pages_and_texts)
+            sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
+            token = df['page_token_count'].describe().round(2)['mean']
+            slice_size = round((340 * sent) / token)
+            
+            for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
+                item["sentence_chunks"] = split_list(input_list=item["sentences"], slice_size=slice_size)
+                item["num_chunks"] = len(item["sentence_chunks"])
+            
+            pages_and_chunks = pages_chunks(pages_and_texts)
+            df = pd.DataFrame(pages_and_chunks)
+            pages_and_chunks = elimination_chunks(df, 30)
+            
+            text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
+            embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")            
 
         if btn:
 
