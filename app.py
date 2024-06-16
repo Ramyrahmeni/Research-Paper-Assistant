@@ -392,15 +392,15 @@ def main():
             if query:
                 with st.spinner('Generating response...'):
                     rep=ask(query,st.session_state.embedding_model,st.session_state.embeddings,st.session_state.pages_and_chunks)
-                    st.session_state.chat_session['history'].append({'role': 'user', 'parts': [{'text': f'Question: {query} Answer: {rep}'}]})
-                    st.session_state.chat_session['history'].append({'role': 'bot', 'parts': [{'text': rep}]})
         st.write("\n\n")
-        for message in reversed(st.session_state.chat_session['history']):
-            if message['role'] == "user":
-                st.markdown(message['parts'][0]['text'])
+        for message in reversed(st.session_state.chat_session.history):
+            if message.role=="user":
+                match = re.search(r"Question:\s*(.*)\s*Answer:", message.parts[0].text)
+                question = match.group(1)
+                st.markdown("Question:"+question)
             else:
-                with st.chat_message(translate_role_for_streamlit(message['role'])):
-                    st.markdown(message['parts'][0]['text'])
+                with st.chat_message(translate_role_for_streamlit(message.role)):
+                    st.markdown(message.parts[0].text)
 
     else:
         if "embeddings" in st.session_state:
