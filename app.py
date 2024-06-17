@@ -420,7 +420,7 @@ def main():
             if message.role=="user":
                 match = re.search(r"Question:\s*(.*)\s*Answer:", message.parts[0].text)
                 st.write(match)
-                question = match.group(0).strip()
+                question = match.group(1).strip()
                 st.markdown(question)
             else:
                 with st.chat_message(translate_role_for_streamlit(message.role)):
