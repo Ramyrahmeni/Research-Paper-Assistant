@@ -360,7 +360,7 @@ def main():
         pages_and_chunks = None
     st.header("Chat with PDF 💬")
     
-    MAX_UPLOAD_SIZE_MB = 30
+    MAX_UPLOAD_SIZE_MB = 5
     MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
     
     pdf = st.file_uploader(f"Upload your PDF", type='pdf')
