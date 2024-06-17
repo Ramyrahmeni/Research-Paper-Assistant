@@ -32,6 +32,9 @@ if 'embedding_model' not in st.session_state:
         st.session_state.embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")          
 if 'pages_and_chunks' not in st.session_state:
         st.session_state.pages_and_chunks = None
+st.write(f"Embeddings: {st.session_state.embeddings}")
+st.write(f"Embedding Model: {st.session_state.embedding_model}")
+st.write(f"Pages and Chunks: {st.session_state.pages_and_chunks}")
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
@@ -387,6 +390,9 @@ def main():
             st.session_state.embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
 
         if btn:
+            st.write(f"Embeddings: {st.session_state.embeddings}")
+            st.write(f"Embedding Model: {st.session_state.embedding_model}")
+            st.write(f"Pages and Chunks: {st.session_state.pages_and_chunks}")
 
             if query:
                 with st.spinner('Generating response...'):
