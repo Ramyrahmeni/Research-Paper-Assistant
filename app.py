@@ -401,7 +401,7 @@ def main():
         if btn:
             if query:
                 with st.spinner('Generating response...'):
-                    rep=ask(query,st.session_state.embedding_model,st.session_state.embeddings,st.session_state.pages_and_chunks)
+                    rep=ask(query,st.session_state.embedding_model,embeddings,pages_and_chunks)
         st.write("\n\n")
         for message in reversed(st.session_state.chat_session.history):
             if message.role=="user":
@@ -411,11 +411,6 @@ def main():
             else:
                 with st.chat_message(translate_role_for_streamlit(message.role)):
                     st.markdown(message.parts[0].text)
-
-    else:
-        if "embeddings" in st.session_state:
-            del st.session_state.embeddings
-            gc.collect()
 
 if __name__ == "__main__":
     main()
