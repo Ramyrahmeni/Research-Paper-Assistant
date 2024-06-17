@@ -348,9 +348,7 @@ def main():
     if 'pdf_uploaded' not in st.session_state:
         st.session_state.pdf_uploaded = False
     
-    if st.session_state.pdf_uploaded and not pdf:
-        delete_pickle_files()
-        st.session_state.pdf_uploaded = False
+    
     if os.path.exists('embeddings.pkl') and os.path.exists('pages_and_chunks.pkl'):
         with open('embeddings.pkl', 'rb') as f:
             embeddings = pickle.load(f)
@@ -366,6 +364,9 @@ def main():
     MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
     
     pdf = st.file_uploader(f"Upload your PDF", type='pdf')
+    if st.session_state.pdf_uploaded and not pdf:
+        delete_pickle_files()
+        st.session_state.pdf_uploaded = False
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
     embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")
