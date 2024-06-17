@@ -361,7 +361,12 @@ def main():
     pdf = st.file_uploader(f"Upload your PDF", type='pdf')
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
-    if pdf:
+    if pdf and pdf.name != st.session_state.get("uploaded_file_name"):
+        st.session_state.uploaded_file_name = pdf.name
+        st.session_state.pdf_processed = False
+        embeddings = None
+        pages_and_chunks = None
+    if pdf and not st.session_state.get("pdf_processed", False):
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
@@ -398,10 +403,14 @@ def main():
 
                 with open('pages_and_chunks.pkl', 'wb') as f:
                     pickle.dump(pages_and_chunks, f)
+                st.session_state.pdf_processed = True
         if btn:
             if query:
-                with st.spinner('Generating response...'):
-                    rep=ask(query,st.session_state.embedding_model,embeddings,pages_and_chunks)
+                if embeddings is None or pages_and_chunks is None:
+                    st.error("Please upload and process a PDF first.")
+                else:
+                    with st.spinner('Generating response...'):
+                        rep=ask(query,st.session_state.embedding_model,embeddings,pages_and_chunks)
         st.write("\n\n")
         for message in reversed(st.session_state.chat_session.history):
             if message.role=="user":
