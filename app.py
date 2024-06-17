@@ -361,12 +361,7 @@ def main():
     pdf = st.file_uploader(f"Upload your PDF", type='pdf')
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
-    if pdf and pdf.name != st.session_state.get("uploaded_file_name"):
-        st.session_state.uploaded_file_name = pdf.name
-        st.session_state.pdf_processed = False
-        embeddings = None
-        pages_and_chunks = None
-    if pdf and not st.session_state.get("pdf_processed", False):
+    if pdf :
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
@@ -403,7 +398,6 @@ def main():
 
                 with open('pages_and_chunks.pkl', 'wb') as f:
                     pickle.dump(pages_and_chunks, f)
-                st.session_state.pdf_processed = True
         if btn:
             st.text(query)
             if query:
