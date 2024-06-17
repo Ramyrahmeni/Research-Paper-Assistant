@@ -26,7 +26,7 @@ def translate_role_for_streamlit(user_role):
     else:
         return user_role
 if "pdf_pross" not in st.session_state:
-    st.pdf_pross=None
+    st.session_state.pdf_pross=None
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
 if 'embedding_model' not in st.session_state:
