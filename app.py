@@ -339,8 +339,18 @@ with st.sidebar:
     1. Upload a PDF file.
     2. Ask questions about the content of your PDF.
     ''')
-
+def delete_pickle_files():
+    if os.path.exists('embeddings.pkl'):
+        os.remove('embeddings.pkl')
+    if os.path.exists('pages_and_chunks.pkl'):
+        os.remove('pages_and_chunks.pkl')
 def main():
+    if 'pdf_uploaded' not in st.session_state:
+        st.session_state.pdf_uploaded = False
+    
+    if st.session_state.pdf_uploaded and not pdf:
+        delete_pickle_files()
+        st.session_state.pdf_uploaded = False
     if os.path.exists('embeddings.pkl') and os.path.exists('pages_and_chunks.pkl'):
         with open('embeddings.pkl', 'rb') as f:
             embeddings = pickle.load(f)
@@ -363,6 +373,7 @@ def main():
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
+        st.session_state.pdf_uploaded = True
         if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
