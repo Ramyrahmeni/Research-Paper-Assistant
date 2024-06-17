@@ -366,6 +366,7 @@ def main():
     pdf = st.file_uploader(f"Upload your PDF", type='pdf')
     if st.session_state.pdf_uploaded and not pdf:
         delete_pickle_files()
+        st.session_state.chat_session = model.start_chat(history=[])          
         st.session_state.pdf_uploaded = False
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
