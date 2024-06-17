@@ -364,35 +364,35 @@ def main():
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
 
-            nlp = English()
-            nlp.add_pipe("sentencizer")
-            
-            for item in stqdm(pages_and_texts, desc="Tokenizing pages"):
-                item["sentences"] = list(nlp(item["text"]).sents)
-                item["sentences"] = [str(sentence) for sentence in item["sentences"]]
-                item["page_sentence_count_spacy"] = len(item["sentences"])
-            
-            df = pd.DataFrame(pages_and_texts)
-            sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
-            token = df['page_token_count'].describe().round(2)['mean']
-            slice_size = round((340 * sent) / token)
-            
-            for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
-                item["sentence_chunks"] = split_list(input_list=item["sentences"], slice_size=slice_size)
-                item["num_chunks"] = len(item["sentence_chunks"])
-            
-            pages_and_chunks = pages_chunks(pages_and_texts)
-            df = pd.DataFrame(pages_and_chunks)
-            st.session_state.pages_and_chunks = elimination_chunks(df, 30)
-            
-            text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
-            
-            st.session_state.embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
-
-        if btn:
+                nlp = English()
+                nlp.add_pipe("sentencizer")
+                
+                for item in stqdm(pages_and_texts, desc="Tokenizing pages"):
+                    item["sentences"] = list(nlp(item["text"]).sents)
+                    item["sentences"] = [str(sentence) for sentence in item["sentences"]]
+                    item["page_sentence_count_spacy"] = len(item["sentences"])
+                
+                df = pd.DataFrame(pages_and_texts)
+                sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
+                token = df['page_token_count'].describe().round(2)['mean']
+                slice_size = round((340 * sent) / token)
+                
+                for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
+                    item["sentence_chunks"] = split_list(input_list=item["sentences"], slice_size=slice_size)
+                    item["num_chunks"] = len(item["sentence_chunks"])
+                
+                pages_and_chunks = pages_chunks(pages_and_texts)
+                df = pd.DataFrame(pages_and_chunks)
+                st.session_state.pages_and_chunks = elimination_chunks(df, 30)
+                
+                text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
+                
+                st.session_state.embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
             st.write(f"Embeddings: {st.session_state.embeddings}")
             st.write(f"Embedding Model: {st.session_state.embedding_model}")
             st.write(f"Pages and Chunks: {st.session_state.pages_and_chunks}")
+        if btn:
+            
 
             if query:
                 with st.spinner('Generating response...'):
