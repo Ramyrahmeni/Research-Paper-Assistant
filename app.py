@@ -405,6 +405,7 @@ def main():
                     pickle.dump(pages_and_chunks, f)
                 st.session_state.pdf_processed = True
         if btn:
+            st.text(query)
             if query:
                 if embeddings is None or pages_and_chunks is None:
                     st.error("Please upload and process a PDF first.")
