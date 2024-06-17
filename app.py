@@ -12,6 +12,8 @@ import textwrap
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
 import gc
+import pickle
+
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
@@ -26,12 +28,9 @@ def translate_role_for_streamlit(user_role):
 
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
-if 'embeddings' not in st.session_state:
-        st.session_state.embeddings = None
 if 'embedding_model' not in st.session_state:
         st.session_state.embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")          
-if 'pages_and_chunks' not in st.session_state:
-        st.session_state.pages_and_chunks = None
+
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
@@ -345,6 +344,15 @@ with st.sidebar:
     ''')
 
 def main():
+    if os.path.exists('embeddings.pkl') and os.path.exists('pages_and_chunks.pkl'):
+        with open('embeddings.pkl', 'rb') as f:
+            embeddings = pickle.load(f)
+
+        with open('pages_and_chunks.pkl', 'rb') as f:
+            pages_and_chunks = pickle.load(f)
+    else:
+        embeddings = None
+        pages_and_chunks = None
     st.header("Chat with PDF 💬")
     
     MAX_UPLOAD_SIZE_MB = 30
@@ -357,7 +365,7 @@ def main():
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
-        if st.session_state.embeddings is None  and st.session_state.pages_and_chunks is None: 
+        if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
 
@@ -380,11 +388,16 @@ def main():
                 
                 pages_and_chunks = pages_chunks(pages_and_texts)
                 df = pd.DataFrame(pages_and_chunks)
-                st.session_state.pages_and_chunks = elimination_chunks(df, 30)
+                pages_and_chunks = elimination_chunks(df, 30)
                 
                 text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
                 
-                st.session_state.embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
+                embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
+                with open('embeddings.pkl', 'wb') as f:
+                    pickle.dump(embeddings, f)
+
+                with open('pages_and_chunks.pkl', 'wb') as f:
+                    pickle.dump(pages_and_chunks, f)
         if btn:
             if query:
                 with st.spinner('Generating response...'):
