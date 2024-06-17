@@ -25,7 +25,8 @@ def translate_role_for_streamlit(user_role):
         return "assistant"
     else:
         return user_role
-
+if "pdf_pross" not in st.session_state:
+    st.pdf_pross=None
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
 if 'embedding_model' not in st.session_state:
@@ -361,7 +362,7 @@ def main():
     pdf = st.file_uploader(f"Upload your PDF", type='pdf')
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
-    if pdf :
+    if pdf and st.session_state.pdf_pross==None:
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
@@ -398,6 +399,7 @@ def main():
 
                 with open('pages_and_chunks.pkl', 'wb') as f:
                     pickle.dump(pages_and_chunks, f)
+                st.session_state.pdf_pross=True
         if btn:
             st.text(query)
             if query:
