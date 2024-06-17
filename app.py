@@ -416,7 +416,6 @@ def main():
                     with st.spinner('Generating response...'):
                         rep=ask(query,embedding_model,embeddings,pages_and_chunks)
         st.write("\n\n")
-        st.text(st.session_state.chat_session)
         for message in reversed(st.session_state.chat_session.history):
             if message.role=="user":
                 match = re.search(r"Question:\s*(.*)\s*Answer:", message.parts[0].text)
