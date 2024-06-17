@@ -418,9 +418,9 @@ def main():
         st.write("\n\n")
         for message in reversed(st.session_state.chat_session.history):
             if message.role=="user":
-                match = re.search(r"Question:\s*(.*)\s*Answer:", message.parts[0].text)
-                question = match.group(1).strip()
-                st.markdown("Question:"+question)
+                match = re.search(r"Question:\s*(.*)\s* ", message.parts[0].text)
+                question = match.group(0).strip()
+                st.markdown(question)
             else:
                 with st.chat_message(translate_role_for_streamlit(message.role)):
                     st.markdown(message.parts[0].text)
