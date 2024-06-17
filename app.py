@@ -25,12 +25,8 @@ def translate_role_for_streamlit(user_role):
         return "assistant"
     else:
         return user_role
-if "pdf_pross" not in st.session_state:
-    st.session_state.pdf_pross=None
 if "chat_session" not in st.session_state:
-    st.session_state.chat_session = model.start_chat(history=[])
-if 'embedding_model' not in st.session_state:
-        st.session_state.embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")          
+    st.session_state.chat_session = model.start_chat(history=[])          
 
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
@@ -362,7 +358,8 @@ def main():
     pdf = st.file_uploader(f"Upload your PDF", type='pdf')
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
-    if pdf and st.session_state.pdf_pross==None:
+    embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")
+    if pdf:
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
             return
@@ -393,21 +390,19 @@ def main():
                 
                 text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
                 
-                embeddings =st.session_state.embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
+                embeddings =embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
                 with open('embeddings.pkl', 'wb') as f:
                     pickle.dump(embeddings, f)
 
                 with open('pages_and_chunks.pkl', 'wb') as f:
                     pickle.dump(pages_and_chunks, f)
-                st.session_state.pdf_pross=True
         if btn:
-            st.text(query)
             if query:
                 if embeddings is None or pages_and_chunks is None:
                     st.error("Please upload and process a PDF first.")
                 else:
                     with st.spinner('Generating response...'):
-                        rep=ask(query,st.session_state.embedding_model,embeddings,pages_and_chunks)
+                        rep=ask(query,embedding_model,embeddings,pages_and_chunks)
         st.write("\n\n")
         for message in reversed(st.session_state.chat_session.history):
             if message.role=="user":
