@@ -414,10 +414,12 @@ def main():
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
                 temp_dir = tempfile.mkdtemp()
-                path1 = os.path.join(temp_dir, uploaded_file.name)
+                
+                path1 = os.path.join(temp_dir, pdf.name)
 
                 # Extract tables from the PDF
-                tables = extract_tables_from_pdf(path1)
+                with open(path1, "wb"):
+                    tables = extract_tables_from_pdf(path1)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 
