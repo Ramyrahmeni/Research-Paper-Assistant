@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 import google.generativeai as gen_ai
 import gc
 import pickle
-
+import tabula
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
@@ -27,6 +27,9 @@ def translate_role_for_streamlit(user_role):
         return user_role
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])          
+def extract_tables_from_pdf(pdf_path):
+    tables = tabula.read_pdf(pdf_path, pages='all')
+    return tables
 
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
@@ -139,14 +142,21 @@ def print_top_results_and_scores(query: str,
         st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
         st.write("\n")
     return context_items
-def ask(query, embedding_model, embeddings, pages_and_chunks):
+def format_tables_for_llm(tables):
+    formatted_tables = []
+    for i, table in enumerate(tables):
+        table_str = f"Table {i+1}:\n"
+        table_str += table.to_string(index=False, header=True)
+        formatted_tables.append(table_str)
+    return "\n\n".join(formatted_tables)
+def ask(query, tables,embedding_model, embeddings, pages_and_chunks):
     """
     Takes a query, finds relevant resources/context and generates an answer to the query based on the relevant resources.
     """
 
     print("Starting ask function")
     print(f"Query: {query}")
-    
+    formatted_tables=format_tables_for_llm(tables)
     # Get just the scores and indices of top related results
     print("Retrieving relevant resources")
     scores, indices = retrieve_relevant_resources(query=query,
@@ -260,22 +270,19 @@ def ask(query, embedding_model, embeddings, pages_and_chunks):
         "question": "What were some key inventions of the Industrial Revolution?",
         "answer": "Key inventions of the Industrial Revolution include the steam engine, the spinning jenny, and the power loom. (Page 76)"
     },
-    
-    # Example 7: Science
-    {
-        "context": [
             {
-                "page_number": 40,
-                "sentence_chunk": "Chapter 4: The Theory of Relativity. Albert Einstein's theory of relativity revolutionized our understanding of space, time, and gravity. The theory consists of two parts: special relativity and general relativity."
+        
+    "context": {
+        "page_number": 160,
+        "sentence_chunk": "Table 15: Laptop Specifications. This table provides a comparison of two laptops based on their operating system, RAM, and processor."
+    }
+,
+        "question": "How do Laptop 1 and Laptop 2 compare in terms of their specifications?",
+        "answer": """The specifications of Laptop 1 and Laptop 2 are compared as follows:
+Operating System: Laptop 1 runs on Windows 11 Professional, while Laptop 2 uses Windows 10 Professional.
+RAM: Laptop 1 is equipped with 24 GB of RAM, which is double the 12 GB RAM available in Laptop 2, making it more suitable for multitasking and intensive applications.
+Processor: Laptop 1 features an 11th Gen Intel(R) Core(TM) i7-1165G7 processor, offering higher performance compared to Laptop 2's Intel(R) Core(TM) i5-8265U CPU. The i7 processor in Laptop 1 provides better speed and efficiency, which is beneficial for demanding computational tasks. (Table 15, Page 160)"""
             },
-            {
-                "page_number": 41,
-                "sentence_chunk": "Special relativity, introduced in 1905, deals with objects moving at constant speeds, particularly at speeds close to the speed of light. General relativity, introduced in 1915, provides a new description of gravity as the curvature of spacetime."
-            }
-        ],
-        "question": "What are the two parts of Einstein's theory of relativity?",
-        "answer": "Einstein's theory of relativity consists of two parts: special relativity, which deals with objects moving at constant speeds, and general relativity, which describes gravity as the curvature of spacetime. (Page 41)"
-    },
     #Example8 Sports:
     {
         "Context": [],
@@ -306,22 +313,43 @@ def ask(query, embedding_model, embeddings, pages_and_chunks):
         }],
         "question": "What is the impact of the Industrial Revolution on ancient civilizations?",
         "answer": "Please adjust your question to focus on ancient civilizations or related topics covered in the book. (Chapter 1: Ancient Civilizations)"
+            },
+            {
+        
+    "context":{
+        "page_number": 140,
+        "sentence_chunk": "Table 14: Performance Metrics of Various Models. This table compares the accuracy, precision, recall, and F1-score of different machine learning models used for email classification."
+    }
+,
+        "question": "How do the machine learning models compare in terms of performance metrics?",
+        "answer": """The performance metrics for various machine learning models used for email classification are as follows:
+Random Forest Classifier: Exhibits strong performance with an accuracy of 93%, precision of 94%, recall of 94%, and F1-score of 94%.
+Support Vector Machine: Shows lower performance with an accuracy of 50%, precision of 24%, recall of 49%, and F1-score of 33%.
+BERT Model: Utilizes BERT for accurate email categorization, achieving an accuracy of 89%, precision of 88%, recall of 92%, and F1-score of 90%.
+Complement Naive Bayes: Optimized for imbalanced datasets, it has an accuracy of 88%, precision of 85%, recall of 98%, and F1-score of 91%.
+Bernoulli Naive Bayes: Assumes features are binary and performs exceptionally well with an accuracy of 96%, precision of 96%, recall of 97%, and F1-score of 96.7%. (Table 14, Page 140)"""
             }
     ]
     
 
-    prompt = f"""You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found.
+    prompt = f"""You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found. Additionally, if the question pertains to any data or tools mentioned in the tables within the PDF, utilize the information from these tables to provide a detailed and precise analysis. If there are no relevant tables, provide an enriched answer based on your knowledge and the given context.
+
+    
+
     Context: {context_items}
 
-    For each question, provide an easy-to-understand answer and specify the page number where the relevant information is located and make it more rich if its possible and you have knowledge about it.
-
-    Examples:{examples}
+    Tables:{formatted_tables}
+    
+    Examples: {examples}
+    
+    Be careful if the context is empty and there is a table you can use in your response you can use that table to respond the user.
 
     Now, respond to the following question:
 
     Question: {query}
     Answer:
     """
+
     
     gemini_response = st.session_state.chat_session.send_message(prompt)
     
@@ -344,20 +372,25 @@ def delete_pickle_files():
         os.remove('embeddings.pkl')
     if os.path.exists('pages_and_chunks.pkl'):
         os.remove('pages_and_chunks.pkl')
+    if os.path.exists('tables.pkl'):
+        os.remove('tables.pkl')
 def main():
     if 'pdf_uploaded' not in st.session_state:
         st.session_state.pdf_uploaded = False
     
     
-    if os.path.exists('embeddings.pkl') and os.path.exists('pages_and_chunks.pkl'):
+    if os.path.exists('embeddings.pkl') and os.path.exists('pages_and_chunks.pkl') and os.path.exists('tables.pkl'):
         with open('embeddings.pkl', 'rb') as f:
             embeddings = pickle.load(f)
 
         with open('pages_and_chunks.pkl', 'rb') as f:
             pages_and_chunks = pickle.load(f)
+        with open('tables.pkl', 'rb') as f:
+            tables = pickle.load(f)
     else:
         embeddings = None
         pages_and_chunks = None
+        tables=None
     st.header("Chat with PDF 💬")
     
     MAX_UPLOAD_SIZE_MB = 5
@@ -379,7 +412,7 @@ def main():
         if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
-
+                tables=extract_tables_from_pdf(pdf)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 
@@ -409,13 +442,15 @@ def main():
 
                 with open('pages_and_chunks.pkl', 'wb') as f:
                     pickle.dump(pages_and_chunks, f)
+                with open('tables.pkl', 'wb') as f:
+                    pickle.dump(tables, f)
         if btn:
             if query:
                 if embeddings is None or pages_and_chunks is None:
                     st.error("Please upload and process a PDF first.")
                 else:
                     with st.spinner('Generating response...'):
-                        rep=ask(query,embedding_model,embeddings,pages_and_chunks)
+                        rep=ask(query,tables, embedding_model,embeddings,pages_and_chunks)
         st.write("\n\n")
         for message in reversed(st.session_state.chat_session.history):
             if message.role=="user":
