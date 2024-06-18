@@ -15,8 +15,7 @@ import gc
 import pickle
 import tabula
 from tabula.io import read_pdf
-from io import BytesIO
-
+import tempfile
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
 
@@ -414,9 +413,11 @@ def main():
         if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
+                temp_dir = tempfile.mkdtemp()
+                path1 = os.path.join(temp_dir, uploaded_file.name)
 
                 # Extract tables from the PDF
-                tables = extract_tables_from_pdf(pdf)
+                tables = extract_tables_from_pdf(path1)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 

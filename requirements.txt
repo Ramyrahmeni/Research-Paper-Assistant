@@ -11,3 +11,4 @@ accelerate
 google-generativeai==0.3.2
 tabula
 tabula-py
+tempfile
