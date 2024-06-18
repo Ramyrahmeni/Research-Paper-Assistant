@@ -29,7 +29,7 @@ def translate_role_for_streamlit(user_role):
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])          
 def extract_tables_from_pdf(pdf):
-    tables = tabula.io.read_pdf(pdf, pages='all')
+    tables = tabula.read_pdf(pdf, pages='all')
     return tables
 
 # Initialize chat session in Streamlit if not already present
