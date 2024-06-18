@@ -14,6 +14,7 @@ import google.generativeai as gen_ai
 import gc
 import pickle
 import tabula
+from tabula.io import read_pdf
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
@@ -339,7 +340,7 @@ Bernoulli Naive Bayes: Assumes features are binary and performs exceptionally we
     Context: {context_items}
 
     Tables:{formatted_tables}
-    
+
     Examples: {examples}
     
     Be careful if the context is empty and there is a table you can use in your response you can use that table to respond the user.
