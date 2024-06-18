@@ -13,7 +13,7 @@ The LLM Chat App is a Streamlit-based application that enables users to upload P
 ## Installation
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/yourusername/llm-chat-app.git
+    git clone https://github.com/Ramyrahmeni/Book-Query-Assistant.git
     cd llm-chat-app
     ```
 
