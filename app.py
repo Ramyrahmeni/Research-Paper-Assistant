@@ -416,8 +416,12 @@ def main():
                 pages_and_texts = open_and_read_pdf(pdf)
                 pdf_bytes = pdf.read()
 
+    # Ensure the file pointer is at the start
+                pdf_file = BytesIO(pdf_bytes)
+                pdf_file.seek(0)
+
                 # Extract tables from the PDF
-                tables = extract_tables_from_pdf(BytesIO(pdf_bytes))
+                tables = extract_tables_from_pdf(pdf_file)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 
