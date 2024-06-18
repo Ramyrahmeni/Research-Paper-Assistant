@@ -145,7 +145,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - [SpaCy](https://spacy.io/)
 - [SentenceTransformer](https://www.sbert.net/)
 - [Google Generative AI](https://cloud.google.com/generative-ai)
-
----
-
-This README file provides comprehensive information about the project, including setup instructions, usage guidelines, and detailed explanations of the vector search process. Adjust the URLs and other details as needed for your specific repository and environment.
