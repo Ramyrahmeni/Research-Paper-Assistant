@@ -413,13 +413,9 @@ def main():
         if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
-                temp_dir = tempfile.mkdtemp()
-                
-                path1 = os.path.join(temp_dir, pdf.name)
 
                 # Extract tables from the PDF
-                with open(path1, "wb"):
-                    tables = extract_tables_from_pdf(path1)
+                tables = extract_tables_from_pdf(pdf)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 
