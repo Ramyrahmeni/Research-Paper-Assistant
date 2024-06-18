@@ -1,7 +1,3 @@
-Sure, here's the updated README with a detailed explanation of the vector search process:
-
----
-
 # 🤗💬 LLM Chat App
 
 ## Overview
