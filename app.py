@@ -414,14 +414,9 @@ def main():
         if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
                 pages_and_texts = open_and_read_pdf(pdf)
-                pdf_bytes = pdf.read()
-
-    # Ensure the file pointer is at the start
-                pdf_file = BytesIO(pdf_bytes)
-                pdf_file.seek(0)
 
                 # Extract tables from the PDF
-                tables = extract_tables_from_pdf(pdf_file)
+                tables = extract_tables_from_pdf(pdf)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 
