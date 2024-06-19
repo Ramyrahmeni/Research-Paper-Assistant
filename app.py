@@ -413,12 +413,12 @@ def main():
                 tables = extract_tables_from_pdf(tmp_file_path)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
-                
+                text_chunks=[]
                 for item in stqdm(pages_and_texts, desc="Tokenizing pages"):
                     item["sentences"] = list(nlp(item["text"]).sents)
                     item["sentences"] = [str(sentence) for sentence in item["sentences"]]
                     item["page_sentence_count_spacy"] = len(item["sentences"])
-                    st.write(item["sentences"])
+                    text_chunks.append(item["sentences"])
                 
                 df = pd.DataFrame(pages_and_texts)
                 sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
@@ -434,8 +434,7 @@ def main():
                 #pages_and_chunks = pages_chunks(pages_and_texts)
                 #df = pd.DataFrame(pages_and_chunks)
                 #pages_and_chunks = elimination_chunks(df, 30)
-                
-                text_chunks = [item["sentences"] for item in pages_and_chunks]
+                #text_chunks = [item["sentence_chunks"] for item in pages_and_chunks]
                 
                 embeddings =embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
                 with open('embeddings.pkl', 'wb') as f:
