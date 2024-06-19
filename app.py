@@ -332,7 +332,7 @@ Bernoulli Naive Bayes: Assumes features are binary and performs exceptionally we
     ]
     
 
-    prompt = """
+    prompt = f"""
     You're assisting users in navigating PDFs effectively. Provide clear and concise responses, including page numbers for relevant passages. Utilize data from tables within the PDF for detailed analysis, if available. If there's no context but relevant tables exist, use them for your response.
 
     Context: {context_items}
