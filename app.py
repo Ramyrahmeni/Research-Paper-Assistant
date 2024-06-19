@@ -338,7 +338,7 @@ Bernoulli Naive Bayes: Assumes features are binary and performs exceptionally we
 
     Context: {context_items}
 
-    Tables:{formatted_tables}
+    
 
     Examples: {examples}
     
