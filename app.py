@@ -332,23 +332,17 @@ Bernoulli Naive Bayes: Assumes features are binary and performs exceptionally we
     ]
     
 
-    prompt = f"""You are an assistant helping users to explore PDFs easily. I will provide you with context items, and you need to give clear and concise responses, including the page number where the related passages can be found. Additionally, if the question pertains to any data or tools mentioned in the tables within the PDF, utilize the information from these tables to provide a detailed and precise analysis. If there are no relevant tables, provide an enriched answer based on your knowledge and the given context.
-
-    
+    prompt = """
+    You're assisting users in navigating PDFs effectively. Provide clear and concise responses, including page numbers for relevant passages. Utilize data from tables within the PDF for detailed analysis, if available. If there's no context but relevant tables exist, use them for your response.
 
     Context: {context_items}
-
-    
-
+    Tables: {formatted_tables}
     Examples: {examples}
-    
-    Be careful if the context is empty and there is a table you can use in your response you can use that table to respond the user.
-
-    Now, respond to the following question:
 
     Question: {query}
     Answer:
     """
+
     print(prompt)
     
     gemini_response = st.session_state.chat_session.send_message(prompt)
