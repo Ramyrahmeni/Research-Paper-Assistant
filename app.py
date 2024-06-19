@@ -15,7 +15,6 @@ import gc
 import pickle
 import tabula
 import tempfile
-import pdfplumber
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
 
@@ -29,32 +28,8 @@ def translate_role_for_streamlit(user_role):
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])          
 def extract_tables_from_pdf(pdf):
-    with open(pdf):
-        tables = tabula.read_pdf(pdf, pages='all')
-        return tables
-
-
-def extract_tables(file_path: str) -> list[pd.DataFrame]:
-    """
-    Extracts tables from a PDF file using pdfplumber and returns them as a list of DataFrames.
-
-    Parameters:
-        file_path (str): The path to the PDF file.
-
-    Returns:
-        list[pd.DataFrame]: A list of DataFrames, each representing a table found in the PDF.
-    """
-    tables = []
-    with pdfplumber.open(file_path) as pdf:
-        for page in pdf.pages:
-            extracted_tables = page.extract_tables()
-            for table in extracted_tables:
-                if table:
-                    tables.append(pd.DataFrame(table[1:], columns=table[0]))
-
-    st.write(tables)  # Display tables using Streamlit's write function
+    tables = tabula.read_pdf(pdf, pages='all')
     return tables
-
 
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
@@ -442,7 +417,7 @@ def main():
                 pages_and_texts = open_and_read_pdf(pdf)
 
                 # Extract tables from the PDF
-                tables = extract_tables(tmp_file_path)
+                tables = extract_tables_from_pdf(tmp_file_path)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 
