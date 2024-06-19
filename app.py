@@ -28,8 +28,9 @@ def translate_role_for_streamlit(user_role):
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])          
 def extract_tables_from_pdf(pdf):
-    tables = tabula.read_pdf(pdf, pages='all')
-    return tables
+    with open(pdf):
+        tables = tabula.read_pdf(pdf, pages='all')
+        return tables
 
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
@@ -411,10 +412,13 @@ def main():
         st.session_state.pdf_uploaded = True
         if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(pdf.read())
+                    tmp_file_path = tmp_file.name
                 pages_and_texts = open_and_read_pdf(pdf)
 
                 # Extract tables from the PDF
-                tables = extract_tables_from_pdf(pdf)
+                tables = extract_tables_from_pdf(tmp_file_path)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 
