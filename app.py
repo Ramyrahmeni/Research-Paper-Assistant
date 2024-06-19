@@ -97,7 +97,7 @@ def print_wrapped(text, wrap_length=80):
 def retrieve_relevant_resources(query: str,
                                 embeddings: torch.tensor,
                                 embedding_model: SentenceTransformer,
-                                n_resources_to_return: int = 5):
+                                n_resources_to_return: int = 3):
     """
     Embeds a query with the model and returns top K scores and indices from embeddings.
     """
@@ -108,7 +108,7 @@ def retrieve_relevant_resources(query: str,
     dot_scores = util.dot_score(query_embedding, embeddings)[0]
     
     # Get the number of scores above a threshold (e.g., 0.5)
-    valid_scores = dot_scores > 0.4
+    valid_scores = dot_scores > 0.2
     cnt = valid_scores.sum().item()
     
     # Get top K scores and their indices
