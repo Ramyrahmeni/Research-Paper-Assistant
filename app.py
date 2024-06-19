@@ -432,7 +432,7 @@ def main():
                 df = pd.DataFrame(pages_and_chunks)
                 pages_and_chunks = elimination_chunks(df, 30)
                 
-                text_chunks = [item["sentence_chunk"] for item in pages_and_chunks]
+                text_chunks = [item["sentences"] for item in pages_and_chunks]
                 
                 embeddings =embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
                 with open('embeddings.pkl', 'wb') as f:
