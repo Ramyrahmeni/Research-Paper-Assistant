@@ -418,6 +418,7 @@ def main():
                     item["sentences"] = list(nlp(item["text"]).sents)
                     item["sentences"] = [str(sentence) for sentence in item["sentences"]]
                     item["page_sentence_count_spacy"] = len(item["sentences"])
+                    st.write(item["sentences"])
                 
                 df = pd.DataFrame(pages_and_texts)
                 sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
