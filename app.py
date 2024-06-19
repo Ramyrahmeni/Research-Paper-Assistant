@@ -108,7 +108,7 @@ def retrieve_relevant_resources(query: str,
     dot_scores = util.dot_score(query_embedding, embeddings)[0]
     
     # Get the number of scores above a threshold (e.g., 0.5)
-    valid_scores = dot_scores > 0.1
+    valid_scores = dot_scores > 0.4
     cnt = valid_scores.sum().item()
     
     # Get top K scores and their indices
