@@ -29,6 +29,7 @@ if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])          
 def extract_tables_from_pdf(pdf):
     tables = tabula.read_pdf(pdf, pages='all')
+    print(tables)
     return tables
 
 # Initialize chat session in Streamlit if not already present
