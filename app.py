@@ -422,15 +422,17 @@ def main():
                 df = pd.DataFrame(pages_and_texts)
                 sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
                 token = df['page_token_count'].describe().round(2)['mean']
-                slice_size = round((340 * sent) / token)
+                #slice_size = round((340 * sent) / token)
                 
-                for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
-                    item["sentence_chunks"] = split_list(input_list=item["sentences"], slice_size=slice_size)
-                    item["num_chunks"] = len(item["sentence_chunks"])
+                #for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
+                 
+                 #   item["sentence_chunks"] = split_list(input_list=item["sentences"], slice_size=slice_size)
+                  
+                  #  item["num_chunks"] = len(item["sentence_chunks"])
                 
-                pages_and_chunks = pages_chunks(pages_and_texts)
-                df = pd.DataFrame(pages_and_chunks)
-                pages_and_chunks = elimination_chunks(df, 30)
+                #pages_and_chunks = pages_chunks(pages_and_texts)
+                #df = pd.DataFrame(pages_and_chunks)
+                #pages_and_chunks = elimination_chunks(df, 30)
                 
                 text_chunks = [item["sentences"] for item in pages_and_chunks]
                 
