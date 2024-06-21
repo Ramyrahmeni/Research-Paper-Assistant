@@ -396,7 +396,7 @@ def main():
         st.session_state.pdf_uploaded = False
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
-    model = SentenceTransformer("all-MiniLM-L6-v2",device='cpu')
+    embedding_model = SentenceTransformer("all-MiniLM-L6-v2",device='cpu')
     if pdf:
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
@@ -436,7 +436,6 @@ def main():
                 #df = pd.DataFrame(pages_and_chunks)
                 #pages_and_chunks = elimination_chunks(df, 30)
                 #text_chunks = [item["sentence_chunks"] for item in pages_and_chunks]
-                embedding_model = SentenceTransformer("all-MiniLM-L6-v2",device='cpu')
 
                 embeddings =embedding_model.encode(text_chunks, batch_size=512, convert_to_tensor=True)  
                 with open('embeddings.pkl', 'wb') as f:
