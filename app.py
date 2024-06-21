@@ -97,7 +97,7 @@ def print_wrapped(text, wrap_length=80):
 def retrieve_relevant_resources(query: str,
                                 embeddings: torch.tensor,
                                 embedding_model: SentenceTransformer,
-                                n_resources_to_return: int = 6):
+                                n_resources_to_return: int = 4):
     """
     Embeds a query with the model and returns top K scores and indices from embeddings.
     """
@@ -437,7 +437,7 @@ def main():
                 #pages_and_chunks = elimination_chunks(df, 30)
                 #text_chunks = [item["sentence_chunks"] for item in pages_and_chunks]
                 
-                embeddings =embedding_model.encode(text_chunks, batch_size=64, convert_to_tensor=True)  
+                embeddings =embedding_model.encode(text_chunks, batch_size=512, convert_to_tensor=True)  
                 with open('embeddings.pkl', 'wb') as f:
                     pickle.dump(embeddings, f)
 
