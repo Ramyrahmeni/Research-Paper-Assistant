@@ -436,7 +436,8 @@ def main():
                 #df = pd.DataFrame(pages_and_chunks)
                 #pages_and_chunks = elimination_chunks(df, 30)
                 #text_chunks = [item["sentence_chunks"] for item in pages_and_chunks]
-                
+                embedding_model = SentenceTransformer("all-MiniLM-L6-v2",device='cpu')
+
                 embeddings =embedding_model.encode(text_chunks, batch_size=512, convert_to_tensor=True)  
                 with open('embeddings.pkl', 'wb') as f:
                     pickle.dump(embeddings, f)
