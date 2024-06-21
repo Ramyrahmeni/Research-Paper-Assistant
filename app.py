@@ -462,7 +462,7 @@ def main():
                 display_chat_message(message.role, question)
             else:
                 with st.chat_message(translate_role_for_streamlit(message.role)):
-                    display_chat_message(message.role, message['text'])
+                    display_chat_message(message.role, message.parts[0].text)
 
 if __name__ == "__main__":
     main()
