@@ -105,7 +105,7 @@ def retrieve_relevant_resources(query: str,
     query_embedding = embedding_model.encode(query, convert_to_tensor=True)
     
     # Get dot product scores on embeddings
-    dot_scores = util.dot_score(query_embedding, embeddings)[0]
+    dot_scores = embedding_model.similarity(query_embedding, embeddings)[0]
     
     # Get the number of scores above a threshold (e.g., 0.5)
     valid_scores = dot_scores > 0.2
@@ -396,7 +396,7 @@ def main():
         st.session_state.pdf_uploaded = False
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
-    embedding_model = SentenceTransformer(model_name_or_path="all-mpnet-base-v2", device="cpu")
+    model = SentenceTransformer("all-MiniLM-L6-v2",device='cpu')
     if pdf:
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
