@@ -396,7 +396,7 @@ def main():
         st.session_state.pdf_uploaded = False
     query = st.text_input("Ask questions about your PDF file:")
     btn=st.button("Ask")
-    embedding_model = SentenceTransformer("all-MiniLM-L6-v2",device='cpu')
+    embedding_model = SentenceTransformer("'all-mpnet-base-v2'",device='cpu')
     if pdf:
         if pdf.size > MAX_UPLOAD_SIZE_BYTES:
             st.error(f"File size is too large! Please upload a file smaller than {MAX_UPLOAD_SIZE_MB} MB.")
