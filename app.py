@@ -459,10 +459,13 @@ def main():
             if message.role=="user":
                 match = re.search(r"Question:\s*(.*)\s* ", message.parts[0].text)
                 question = match.group(0).strip()
-                display_chat_message(message.role, question)
+                with st.chat_message(translate_role_for_streamlit(message.role)):
+                    st.markdown(question)
             else:
                 with st.chat_message(translate_role_for_streamlit(message.role)):
-                    display_chat_message(message.role, message.parts[0].text)
+                    st.markdown(message.parts[0].text)
+
+
 
 if __name__ == "__main__":
     main()
