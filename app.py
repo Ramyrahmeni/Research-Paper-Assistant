@@ -17,7 +17,9 @@ import tabula
 import tempfile
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
-
+def display_chat_message(role, message):
+    icon = "🧑" if role == "user" else "🤖"
+    st.markdown(f"{icon} **{role.capitalize()}:** {message}")
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-1.5-pro')
 def translate_role_for_streamlit(user_role):
@@ -457,10 +459,10 @@ def main():
             if message.role=="user":
                 match = re.search(r"Question:\s*(.*)\s* ", message.parts[0].text)
                 question = match.group(0).strip()
-                st.markdown(question)
+                display_chat_message(message['role'], question)
             else:
                 with st.chat_message(translate_role_for_streamlit(message.role)):
-                    st.markdown(message.parts[0].text)
+                    display_chat_message(message['role'], message['text'])
 
 if __name__ == "__main__":
     main()
