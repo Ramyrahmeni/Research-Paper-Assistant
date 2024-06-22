@@ -112,7 +112,7 @@ def ask(query, tables,embedding_model, embeddings, pages_and_chunks):
 
     # Create a list of context items
     context_items = [pages_and_chunks[i] for i in indices]
-    context_items = re_rank(query, context_items)
+    #context_items = re_rank(query, context_items)
     print(context_items)
     # Add score to context item
     for i, item in enumerate(context_items):
