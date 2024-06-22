@@ -3,7 +3,7 @@ import PyPDF2
 import pandas as pd
 from spacy.lang.en import English
 import re
-from sentence_transformers import SentenceTransformer,CrossEncoder
+from sentence_transformers import SentenceTransformer
 import os
 from stqdm import stqdm  
 import torch
@@ -13,16 +13,10 @@ import google.generativeai as gen_ai
 import pickle
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
-cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2')
 
 
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-1.5-pro')
-def re_rank(query, contexts):
-    cross_inp = [[query, ctx['text']] for ctx in contexts]
-    scores = cross_encoder.predict(cross_inp)
-    sorted_contexts = [x for _, x in sorted(zip(scores, contexts), key=lambda pair: pair[0], reverse=True)]
-    return sorted_contexts
 def translate_role_for_streamlit(user_role):
     if user_role == "model":
         return "assistant"
