@@ -3,25 +3,26 @@ import PyPDF2
 import pandas as pd
 from spacy.lang.en import English
 import re
-from sentence_transformers import SentenceTransformer, util
-from transformers import AutoTokenizer, AutoModelForCausalLM , pipeline
+from sentence_transformers import SentenceTransformer,CrossEncoder
 import os
 from stqdm import stqdm  
 import torch
-import textwrap
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
-import gc
+
 import pickle
-import tabula
-import tempfile
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("API_KEY")
-def display_chat_message(role, message):
-    icon = "🧑" if role == "user" else "🤖"
-    st.markdown(f"{icon} **{role.capitalize()}:** {message}")
+cross_encoder = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2')
+
+
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-1.5-pro')
+def re_rank(query, contexts):
+    cross_inp = [[query, ctx['text']] for ctx in contexts]
+    scores = cross_encoder.predict(cross_inp)
+    sorted_contexts = [x for _, x in sorted(zip(scores, contexts), key=lambda pair: pair[0], reverse=True)]
+    return sorted_contexts
 def translate_role_for_streamlit(user_role):
     if user_role == "model":
         return "assistant"
@@ -29,10 +30,6 @@ def translate_role_for_streamlit(user_role):
         return user_role
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])          
-def extract_tables_from_pdf(pdf):
-    tables = tabula.read_pdf(pdf, pages='all')
-    return tables
-
 # Initialize chat session in Streamlit if not already present
 def text_formatter(text: str) -> str:
     """Performs minor formatting on text."""
@@ -67,34 +64,14 @@ def open_and_read_pdf(pdf) -> list[dict]:
             })
     return pages_and_texts
 
-def pages_chunks(pages_and_texts: list[dict]) -> list[dict]:
-    pages_and_chunks = []
-    for item in pages_and_texts:
-        for sentence_chunk in item["sentence_chunks"]:
-            chunk_dict = {}
-            chunk_dict["page_number"] = item["page_number"]
-            joined_sentence_chunk = "".join(sentence_chunk).replace("  ", " ").strip()
-            joined_sentence_chunk = re.sub(r'\.([A-Z])', r'. \1', joined_sentence_chunk)  # ".A" -> ". A" for any full-stop/capital letter combo
-            chunk_dict["sentence_chunk"] = joined_sentence_chunk
-            chunk_dict["chunk_char_count"] = len(joined_sentence_chunk)
-            chunk_dict["chunk_word_count"] = len([word for word in joined_sentence_chunk.split(" ")])
-            chunk_dict["chunk_token_count"] = len(joined_sentence_chunk) / 4  # 1 token = ~4 characters
-            pages_and_chunks.append(chunk_dict)
-    return pages_and_chunks
-
 def split_list(input_list: list, slice_size: int) -> list[list[str]]:
     """Splits the input_list into sublists of size slice_size (or as close as possible)."""
     return [input_list[i:i + slice_size] for i in range(0, len(input_list), slice_size)]
 
 def elimination_chunks(df: pd.DataFrame, min_token_length) -> list[dict]:
-    pages_and_chunks_over_min_token_len = df[df["chunk_token_count"] > min_token_length].to_dict(orient="records")
+    pages_and_chunks_over_min_token_len = df[df["page_token_count"] > min_token_length].to_dict(orient="records")
 
     return pages_and_chunks_over_min_token_len
-
-
-def print_wrapped(text, wrap_length=80):
-    wrapped_text = textwrap.fill(text, wrap_length)
-    print(wrapped_text)
 
 def retrieve_relevant_resources(query: str,
                                 embeddings: torch.tensor,
@@ -119,38 +96,6 @@ def retrieve_relevant_resources(query: str,
     
     return scores, indices
 
-def print_top_results_and_scores(query: str,
-                                 embeddings: torch.tensor,
-                                 pages_and_chunks: list[dict],
-                                 embedding_model:SentenceTransformer,
-                                 n_resources_to_return: int=5):
-    """
-    Takes a query, retrieves most relevant resources and prints them out in descending order.
-
-    Note: Requires pages_and_chunks to be formatted in a specific way (see above for reference).
-    """
-    scores, indices = retrieve_relevant_resources(query=query,
-                                                  embeddings=embeddings,
-                                                  embedding_model=embedding_model,
-                                                  n_resources_to_return=n_resources_to_return)
-
-    st.write(f"Query: {query}\n")
-    st.write("Results:")
-    context_items=[]
-    for score, index in zip(scores, indices):
-        context_items.append(pages_and_chunks[index])
-        st.write(f"**Score:** {score:.4f}")
-        st.write(f"**Sentence Chunk:** {pages_and_chunks[index]['sentence_chunk']}")
-        st.write(f"**Page Number:** {pages_and_chunks[index]['page_number']}")
-        st.write("\n")
-    return context_items
-def format_tables_for_llm(tables):
-    formatted_tables = []
-    for i, table in enumerate(tables):
-        table_str = f"Table {i+1}:\n"
-        table_str += table.to_string(index=False, header=True)
-        formatted_tables.append(table_str)
-    return "\n\n".join(formatted_tables)
 def ask(query, tables,embedding_model, embeddings, pages_and_chunks):
     """
     Takes a query, finds relevant resources/context and generates an answer to the query based on the relevant resources.
@@ -158,7 +103,6 @@ def ask(query, tables,embedding_model, embeddings, pages_and_chunks):
 
     print("Starting ask function")
     print(f"Query: {query}")
-    formatted_tables=format_tables_for_llm(tables)
     # Get just the scores and indices of top related results
     print("Retrieving relevant resources")
     scores, indices = retrieve_relevant_resources(query=query,
@@ -168,7 +112,8 @@ def ask(query, tables,embedding_model, embeddings, pages_and_chunks):
 
     # Create a list of context items
     context_items = [pages_and_chunks[i] for i in indices]
-
+    context_items = re_rank(query, context_items)
+    print(context_items)
     # Add score to context item
     for i, item in enumerate(context_items):
         item["score"] = scores[i].cpu()  # return score back to CPU
@@ -420,12 +365,11 @@ def main():
                     item["sentences"] = list(nlp(item["text"]).sents)
                     item["sentences"] = [str(sentence) for sentence in item["sentences"]]
                     item["page_sentence_count_spacy"] = len(item["sentences"])
-                    text_chunks.append(item["sentences"])#testing
+                    text_chunks.append(item["sentences"])
                 
-                df = pd.DataFrame(pages_and_texts)
-                sent = df['page_sentence_count_spacy'].describe().round(2)['mean']
-                token = df['page_token_count'].describe().round(2)['mean']
-                pages_and_chunks=pages_and_texts#testing
+                pages_and_chunks=pages_and_texts
+                df = pd.DataFrame(pages_and_chunks)
+                pages_and_chunks = elimination_chunks(df, 30)
                 #slice_size = round((340 * sent) / token)
                 
                 #for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
