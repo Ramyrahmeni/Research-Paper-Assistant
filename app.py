@@ -351,13 +351,9 @@ def main():
         st.session_state.pdf_uploaded = True
         if embeddings is None  and pages_and_chunks is None: 
             with st.spinner('Processing PDF...'):
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    tmp_file.write(pdf.read())
-                    tmp_file_path = tmp_file.name
                 pages_and_texts = open_and_read_pdf(pdf)
 
                 # Extract tables from the PDF
-                tables = extract_tables_from_pdf(tmp_file_path)
                 nlp = English()
                 nlp.add_pipe("sentencizer")
                 text_chunks=[]
