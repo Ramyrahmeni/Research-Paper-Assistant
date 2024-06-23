@@ -298,8 +298,8 @@ with st.sidebar:
     ''')
     st.markdown('''
     ## Instructions
-    1. Upload a PDF file.
-    2. Ask questions about the content of your PDF.
+    1. Upload a Research Paper.
+    2. Ask questions about the content of your Research Paper.
     ''')
 def delete_pickle_files():
     if os.path.exists('embeddings.pkl'):
@@ -360,19 +360,6 @@ def main():
                 pages_and_chunks=pages_and_texts
                 df = pd.DataFrame(pages_and_chunks)
                 pages_and_chunks = elimination_chunks(df, 30)
-                #slice_size = round((340 * sent) / token)
-                
-                #for item in stqdm(pages_and_texts, desc="Splitting sentences into chunks"):
-                 
-                 #   item["sentence_chunks"] = split_list(input_list=item["sentences"], slice_size=slice_size)
-                  
-                  #  item["num_chunks"] = len(item["sentence_chunks"])
-                
-                #pages_and_chunks = pages_chunks(pages_and_texts)
-                #df = pd.DataFrame(pages_and_chunks)
-                #pages_and_chunks = elimination_chunks(df, 30)
-                #text_chunks = [item["sentence_chunks"] for item in pages_and_chunks]
-
                 embeddings =embedding_model.encode(text_chunks, batch_size=512, convert_to_tensor=True)  
                 with open('embeddings.pkl', 'wb') as f:
                     pickle.dump(embeddings, f)
