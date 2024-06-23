@@ -325,17 +325,17 @@ def main():
         embeddings = None
         pages_and_chunks = None
         tables=None
-    st.header("Chat with PDF 💬")
+    st.header("Chat with Reaserch Paper 💬")
     
     MAX_UPLOAD_SIZE_MB = 5
     MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
     
-    pdf = st.file_uploader(f"Upload your PDF", type='pdf')
+    pdf = st.file_uploader(f"Upload your Research Paper", type='pdf')
     if st.session_state.pdf_uploaded and not pdf:
         delete_pickle_files()
         st.session_state.chat_session = model.start_chat(history=[])          
         st.session_state.pdf_uploaded = False
-    query = st.text_input("Ask questions about your PDF file:")
+    query = st.text_input("Ask questions about your Research Paper:")
     btn=st.button("Ask")
     embedding_model = SentenceTransformer("all-mpnet-base-v2",device='cpu')
     if pdf:
