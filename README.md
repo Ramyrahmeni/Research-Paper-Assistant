@@ -123,7 +123,3 @@ After evaluating both Llama 3 and Gemini 1.5 Pro, we chose Gemini 1.5 Pro due to
 - **Consistency**: In tests, Gemini 1.5 Pro showed consistent performance, whereas Llama 3 exhibited variability, especially in handling more challenging problems.
 
 By leveraging Gemini 1.5 Pro, we ensure that our application delivers precise, reliable, and insightful responses to users, especially for technically demanding queries.
-
----
-
-Feel free to replace placeholders such as `your-username` and other customizable sections with your actual details.
