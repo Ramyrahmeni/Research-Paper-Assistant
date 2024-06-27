@@ -290,7 +290,7 @@ Bernoulli Naive Bayes: Assumes features are binary and performs exceptionally we
 
     return gemini_response
 with st.sidebar:
-    st.title('🤗💬 LLM Chat App')
+    st.title('🤗💬 Research Paper Assistant')
     st.markdown('''
     ## About
     This app is an LLM-powered chatbot built using:
