@@ -70,7 +70,7 @@ def elimination_chunks(df: pd.DataFrame, min_token_length) -> list[dict]:
 def retrieve_relevant_resources(query: str,
                                 embeddings: torch.tensor,
                                 embedding_model: SentenceTransformer,
-                                n_resources_to_return: int = 4):
+                                n_resources_to_return: int = 3):
     """
     Embeds a query with the model and returns top K scores and indices from embeddings.
     """
